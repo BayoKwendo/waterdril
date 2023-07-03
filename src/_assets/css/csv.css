@@ -1,0 +1,87 @@
+.wrapper {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+    margin-bottom: 40px;
+}
+
+.section1 {
+    grid-row: 1 / 2;
+}
+
+.section2 {
+    grid-row: 3 / 4;
+}
+
+.section3 {
+    grid-row: 5 / 6;
+}
+
+.contain {
+    padding: 10px;
+    border: 1px dashed #ccc;
+    background-color: #fafafa;
+    border-radius: 5px;
+    width: auto;
+}
+
+.table {
+    flex-direction: column;
+}
+
+.csv-input {
+    padding: 10px;
+    display: block;
+    margin: 15px auto;
+    border: 3px solid #ccc;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+.container p {
+    padding-top: 10px;
+    color: #666;
+    font-size: 16px;
+}
+
+.button {
+    margin: 20px 15px 20px 0;
+    border-radius: 4px;
+    background-color: #00ba98;
+    border: none;
+    color: #ffffff;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 100;
+    padding: 10px;
+    transition: all 0.5s;
+    cursor: pointer;
+    pointer-events: auto;
+    outline: none;
+}
+
+.button span {
+    cursor: pointer;
+    pointer-events: auto;
+    display: block;
+    position: relative;
+    transition: 0.5s;
+}
+
+.button span:after {
+    content: "\00bb";
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+}
+
+.button:hover span {
+    padding-right: 25px;
+}
+
+.button:hover span:after {
+    opacity: 1;
+    right: 0;
+}

@@ -1,0 +1,94 @@
+(function() {
+  $(document).on('ready', function() {
+    $('#promotional_invite').on('click', function() {
+      if ($(this).is(':checked')) {
+        return $('#promotional_plan_type, #promotional_duration, #promotional_msa_region').attr('required', true).parent('.form-group').removeClass('d-none');
+      } else {
+        return $('#promotional_plan_type , #promotional_duration, #promotional_msa_region').attr('required', false).val('').parent('.form-group').addClass('d-none');
+      }
+    });
+    $('#personalised_mail').on('click', function() {
+      if ($(this).is(':checked')) {
+        document.getElementById('default_mail').checked = false;
+        return document.getElementById('personalised_mail_content').style.display = 'block';
+      }
+    });
+    $('#default_mail').on('click', function() {
+      if ($(this).is(':checked')) {
+        document.getElementById('personalised_mail').checked = false;
+        return document.getElementById('personalised_mail_content').style.display = 'none';
+      }
+    });
+    $('#admin_personalised_mail').on('click', function() {
+      if ($(this).is(':checked')) {
+        document.getElementById('admin_default_mail').checked = false;
+        return document.getElementById('admin_personalised_mail_content').style.display = 'block';
+      }
+    });
+    $('#admin_default_mail').on('click', function() {
+      if ($(this).is(':checked')) {
+        document.getElementById('admin_personalised_mail').checked = false;
+        return document.getElementById('admin_personalised_mail_content').style.display = 'none';
+      }
+    });
+    $('#admin_physician_personalised_mail').on('click', function() {
+      if ($(this).is(':checked')) {
+        document.getElementById('admin_physician_default_mail').checked = false;
+        return document.getElementById('admin_physician_personalised_mail_content').style.display = 'block';
+      }
+    });
+    $('#admin_physician_default_mail').on('click', function() {
+      if ($(this).is(':checked')) {
+        document.getElementById('admin_physician_personalised_mail').checked = false;
+        return document.getElementById('admin_physician_personalised_mail_content').style.display = 'none';
+      }
+    });
+    $('#physician_personalised_mail').on('click', function() {
+      if ($(this).is(':checked')) {
+        document.getElementById('physician_default_mail').checked = false;
+        return document.getElementById('physician_personalised_mail_content').style.display = 'block';
+      }
+    });
+    $('#physician_default_mail').on('click', function() {
+      if ($(this).is(':checked')) {
+        document.getElementById('physician_personalised_mail').checked = false;
+        return document.getElementById('physician_personalised_mail_content').style.display = 'none';
+      }
+    });
+    $('#invite_submit').on('click', function() {
+      var content;
+      content = tinyMCE.activeEditor.getContent();
+      $('#tinymce_error_message_patient').text('');
+      $('#patient_email_subject_error').text('');
+      if ($('#personalised_mail').is(':checked')) {
+        if ($('#patient_email_subject_details').val() === '') {
+          $('#patient_email_subject_error').text('Please enter E-mail subject');
+          return false;
+        } else if (content === '') {
+          $('#tinymce_error_message_patient').text("Please enter E-mail content");
+          return false;
+        } else {
+          return true;
+        }
+      }
+    });
+    return $('#invite_submit_doctor').on('click', function() {
+      var content;
+      content = tinyMCE.activeEditor.getContent();
+      $('#tinymce_error_message_doctor').text('');
+      $('#email_subject_error').text('');
+      if ($('#physician_personalised_mail').is(':checked')) {
+        if ($('#email_subject_details').val() === '') {
+          $('#email_subject_error').text('Please enter E-mail subject');
+          return false;
+        } else if (content === '') {
+          $('#tinymce_error_message_doctor').text("Please enter E-mail content");
+          return false;
+        } else {
+          return true;
+        }
+      }
+    });
+  });
+
+}).call(this);

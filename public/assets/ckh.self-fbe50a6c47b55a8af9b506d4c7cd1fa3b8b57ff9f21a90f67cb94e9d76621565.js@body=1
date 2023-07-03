@@ -1,0 +1,4775 @@
+var physician_schedule_count;
+var schedules = [];
+var slots = []
+var physician_user_schedules = [];
+var apt_patient_id
+var additional_questions = {};
+var questions_count;
+var appointment_errors;
+var not_onboarded_schedules =[];
+
+$(document).ready(function() {
+  $('.app-btn-set').hide();
+  $("#processed_data").hide();
+  $("#not_processed_data").hide();
+  $("#bulk_upload_inprogress").hide();
+  $('.edit_coupon_code').hide();
+  $('.preview_image_section').hide();
+  $('#preview_update_image_section').hide();
+ 
+
+
+$(document).on("click", "#terms_modal .close", function(event){
+  
+  $(".signup-wrap #new_patient").click();  
+  $("#regbtn").focus();
+
+ });
+
+
+
+  $('#example_wrapper').dataTable( {
+    language: {
+        searchPlaceholder: "Search"
+    },
+    "order": [[ 4, "desc" ]],
+    "lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+  });
+
+  $('#app_data-tables').dataTable( {
+    "bPaginate": false,
+    "bLengthChange": false
+  });
+
+  if ((window.location.href.indexOf("account_details") > -1) || (window.location.href.indexOf("physician_sign_up") > -1) ){
+    var user_id,invitation_id;
+   if (window.location.search.substring(1, 18) === "physician_user_id") {
+      user_id = window.location.search.substring(1).split('physician_user_id=').pop();
+     }
+     if (window.location.search.substring(1, 14) === "invitation_id") {
+      invitation_id = window.location.search.substring(1).split('invitation_id=').pop();
+     }
+    $.ajax({
+      url: '/physicians/check_physician_specialty',
+      type: 'GET',
+      dataType: "json",
+      data: {
+        specialty_id: document.getElementById('physician_specialty_list').value,
+        physician_user_id: user_id,
+        invitation_id: invitation_id,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        $('#physician_sub_specialty_list').html('');
+        if (data.status == true)
+        {
+          $('#physician_sub_specialty_list').append($('<option/>', {
+            value: "",
+            text : "None"
+          }));
+          data.sub_specialties.forEach(function(sub_specialty){
+            $('#physician_sub_specialty_list').append($('<option/>', {
+              value: sub_specialty.id,
+              text : sub_specialty.name
+            }));
+            if(data.sub_specialty_id == sub_specialty.id){
+              $('#physician_sub_specialty_list option[value=' + sub_specialty.id + ']').attr('selected', true);
+            }
+          });
+        }
+        else if(data.success==true){
+         $( ".subspecialty_block" ).show();
+         $('#physician_sub_specialty_list').append($('<option/>', {
+             value: "",
+             text : "None"
+           }));
+          data.sub_specialties.forEach(function(sub_specialty){
+            $('#physician_sub_specialty_list').append($('<option/>', {
+              value: sub_specialty.id,
+              text : sub_specialty.name
+            }));
+          });
+        }
+        else{
+          $('.subspecialty_block').hide();
+        }
+      }
+    });
+  }
+
+  if ((window.location.href.indexOf("patients") > -1) && (window.location.href.indexOf("edit") > -1) ){
+    $.ajax({
+      url: '/patients/region_filtered_physicians',
+      type: 'GET',
+      dataType: "json",
+      data: {
+        user_id: $("#edit_patient_id").val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        $('#user_patient_info_attributes_key_physician_id').empty();
+        $('#user_patient_info_attributes_key_physician_id').append("<option value>Select Doctor</option>");
+        if (jQuery.isEmptyObject(data.physician_infos) === false) {
+          $('.admin_key_physician_section').show();
+           Object.keys(data.physician_infos).sort().forEach(function(key, index1) {
+            $('#user_patient_info_attributes_key_physician_id').append('<optgroup id=' + index1 + ' label=' + JSON.stringify(key) + '></optgroup>');
+           data.physician_infos[key].sort().forEach(function(m, index) {
+             $('#' + index1).append('<option value=' + m['id'] + '>'+ m['designated_full_name'] + '</option>');
+               if(data.key_physician == m['id']){
+                var optgroup = $('select optgroup[label="'+key+'"]')
+                var option = optgroup.find('option[value="'+m['id']+'"]')
+                option.attr('selected', true)
+               }
+            });
+          });
+        } else {
+          $('.admin_key_physician_section').hide();
+          $("#user_patient_info_attributes_key_physician_id").prop('required', false);
+        }
+      }
+    });
+  }
+
+  if (window.location.href.indexOf("account_details") > -1) {
+    var user_id;
+   if (window.location.search.substring(1, 18) === "physician_user_id") {
+      user_id = window.location.search.substring(1).split('physician_user_id=').pop();
+     }
+    $.ajax({
+      url: '/physicians/check_physician_title',
+      type: 'GET',
+      dataType: "json",
+      data: {
+        physician_title: document.getElementById('user_title').value,
+        physician_user_id: user_id,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if(data.success==true){
+        data.physician_titles.forEach(function(physician_title,index){
+          incremental =index ;
+          $('#addr'+incremental).append("<td><input type='text'class='form-control' id='designation"+index+"' name='designation"+index+"' value='"+physician_title+"'></td><td onclick='tdclick(this);' id='deleteRow'><input type='button' class='btn custom_btn remove' value='Remove'></td>");
+          $('#incremental').append('<tr id="addr'+(incremental+1)+'"');
+          $('#titlecount').val(incremental+1) ;
+        });
+      }
+      }
+    });
+  }
+
+    if (window.location.href.indexOf("notification") > -1) {
+     var notification =  $("#admin_configuration_value").val();
+     if (notification == "true"){
+       $('#user_notification_enabled_to_admin').attr('checked',true);
+       }
+     }
+
+
+  $( "#example_wrapper_wrapper div.row:nth-child(1)" ).addClass("item1");
+  $( "#example_wrapper_wrapper div.row:nth-child(2)" ).addClass("item2");
+  $( "#example_wrapper_wrapper div.row:nth-child(3)" ).addClass("table_footer");
+  $( ".item1 div:first" ).addClass("show_row");
+  $( ".item1 div:nth-child(2)" ).addClass("show_search");
+
+
+  var nflag = true;
+  $('#example_wrapper_length label').contents().filter(function(){
+  if(this.nodeType === 3 && nflag === true){
+    nflag = false;
+    return true;
+  }
+  else
+    return false;
+  })
+  .wrap( "<span class='show_lbl'></span>" );
+
+
+  $('#physician_date_selector,#patients_date_selector,#patients_date_selector_wpo_ckh,#physician_region_date_selector,#appointment_history_date_selector,#onboarded_patients_date_selector').daterangepicker({
+    autoUpdateInput: false,
+    locale: {
+      cancelLabel: 'Cancel',
+      applyLabel: 'Filter'
+    },
+ });
+
+ $('#physician_date_selector').on('apply.daterangepicker', function(ev, picker) {
+    hidden_flag = $('#hidden_only').val()
+    if (hidden_flag == 'true')
+    {
+      window.location = "/physicians?hidden_only=true&start_date="+picker.startDate.format('YYYY-MM-DD')+"&end_date="+picker.endDate.format('YYYY-MM-DD');
+    }else{
+      window.location = "/physicians?start_date="+picker.startDate.format('YYYY-MM-DD')+"&end_date="+picker.endDate.format('YYYY-MM-DD');
+    }
+ });
+
+ $('#patients_date_selector').on('apply.daterangepicker', function(ev, picker) {
+    window.location = "/patients?start_date="+picker.startDate.format('YYYY-MM-DD')+"&end_date="+picker.endDate.format('YYYY-MM-DD');
+ });
+ $('#onboarded_patients_date_selector').on('apply.daterangepicker', function(ev, picker) {
+    window.location = "/patients/patients_onboarded?start_date="+picker.startDate.format('YYYY-MM-DD')+"&end_date="+picker.endDate.format('YYYY-MM-DD');
+ });
+ $('#patients_date_selector_wpo_ckh').on('apply.daterangepicker', function(ev, picker) {
+    window.location = "/patients/wpo_ckh?start_date="+picker.startDate.format('YYYY-MM-DD')+"&end_date="+picker.endDate.format('YYYY-MM-DD');
+ });
+
+ $('#physician_region_date_selector').on('apply.daterangepicker', function(ev, picker) {
+     window.location = "/msa_regions/"+$(".msa_physician_region_id").val()+"?start_date="+picker.startDate.format('YYYY-MM-DD')+"&end_date="+picker.endDate.format('YYYY-MM-DD');
+ });
+
+ $('#appointment_history_date_selector').on('apply.daterangepicker', function(ev, picker) {
+     window.location = "/physicians/appointments_histroy?start_date="+picker.startDate.format('YYYY-MM-DD')+"&end_date="+picker.endDate.format('YYYY-MM-DD');
+ });
+
+ $('#physician_date_selector').on('cancel.daterangepicker', function(ev, picker) {
+       window.location = "/physicians";
+ });
+
+ $('#appointment_history_date_selector').on('cancel.daterangepicker', function(ev, picker) {
+       window.location = "/physicians/appointments_histroy";
+ });
+
+ $('#physician_region_date_selector').on('cancel.daterangepicker', function(ev, picker) {
+       window.location = "/msa_regions/"+$(".msa_physician_region_id").val();
+ });
+
+ $('#patients_date_selector').on('cancel.daterangepicker', function(ev, picker) {
+       window.location = "/patients";
+ });
+ $('#onboarded_patients_date_selector').on('cancel.daterangepicker', function(ev, picker) {
+       window.location = "/patients/patients_onboarded";
+ });
+ $('#patients_date_selector_wpo_ckh').on('cancel.daterangepicker', function(ev, picker) {
+       window.location = "/patients/wpo_ckh";
+ });
+
+ $(".close_disburse_popup").click(function(){
+  window.location.reload()
+ });
+
+ $("#patient_appointment_cancel").click(function(){
+  window.location.reload()
+ });
+
+
+
+ $("#update_payment_method").click(function(){
+  $("#credit_card_error_message").html('');
+  $("#update_credit_card_number").val('');
+  $("#update_credit_card_cvv").val('');
+  $("#update_credit_card_month").val($("#patient_update_card_month").val());
+  $("#update_credit_card_year").val($("#patient_update_card_year").val());
+ });
+
+
+  $('#example_wrapper_filter label').contents().filter(function(){
+   return (this.nodeType !== 1);
+  })
+  .wrap( "<span class='search_lbl'></span>" );
+
+
+  $("#form_reset").click(function(){
+    $(this).closest("form")[0].reset()
+    $(".form-control").val('');
+  });
+
+  $("#individual_promo_code_link").click(function(){
+    if ($('#individual-monthly').length > 0) {
+     plan_type = $('#individual-monthly').val();
+   } else if ($('#individual-yearly').length > 0) {
+     plan_type = $('#individual-yearly').val();
+   } else {
+     plan_type = $('input:radio[name=invidiual]:checked').val();
+   }
+   if ($('input:radio[name=invidiual]').length > 0 && plan_type === null || plan_type == undefined) {
+     $('.region_plan_error').text('Please Select Plan');
+   } else {
+    $('#promo_code_popup').modal('show')
+    $('#promo_code_plan_name').val(plan_type)
+   }
+  });
+
+  $("#password_form_reset").click(function(){
+    $(this).closest("form")[0].reset()
+  });
+
+  $("#family_promo_code_link").click(function(){
+    if($("#family-monthly").length > 0){
+      var plan_type = $("#family-monthly").val();
+    }
+    else if ($("#family-yearly").length > 0){
+      var plan_type = $("#family-yearly").val();
+    }
+    else{
+    var plan_type = $('input:radio[name=family]:checked').val();
+  }
+    if (($('input:radio[name=family]').length >0) && plan_type == null ||  plan_type == undefined) {
+      $('.region_plan_error').text("Please Select Plan")
+    }
+    else{
+      $('#promo_code_popup').modal('show')
+      $('#promo_code_plan_name').val(plan_type)
+  }
+  });
+
+  $("#admin_phone_number,#physician_phone_number,#patient_phone_number,#registration_patient_phone_number,#family_phone_number,#physician_account_details_phone_number,#physician_account_details_practice_number,#update_user_phone,#physician_account_details_office_phone_number,#staff_mobile_update").mask("999-999-9999");
+  $("#patient_postal_code").mask("99999");
+  $("#user_patient_subscription_attributes_card_number,#update_credit_card_number").mask("9999 9999 9999 9999 999");
+  $("#user_physician_subscription_attributes_card_number").mask("9999 9999 9999 9999 999");
+
+
+  $('#user_physician_info_attributes_national_provider_id,#user_physician_subscription_attributes_cvv').on('keyup',function(event){
+    if (isNaN($(this).val())) {
+      $(this).val($(this).val().substr(0,$(this).val().length - 1))
+    }
+  })
+  $('[data-toggle=offcanvas]').click(function() {
+    $('.row-offcanvas').toggleClass('active');
+  });
+
+
+  $('#update_credit_card').click(function() {
+    $('#update_credit_card').text('Updating...')
+    $('#credit_card_error_message').text('')
+    if (!$('#update_credit_card_number').val()) {
+      $('#credit_card_error_message').text("Please enter credit card number")
+      $('#update_credit_card').text('UPDATE')
+    }
+    else {
+      $.ajax({
+      url: '/user_subscriptions/update_credit_card_details',
+      type: 'POST',
+      dataType: "json",
+      data: {
+        subscription_id: $("#subscription_id").val(),
+        card_number: $('#update_credit_card_number').val(),
+        month: $('#update_credit_card_month').val(),
+        year: $('#update_credit_card_year').val(),
+        cvv: $('#update_credit_card_cvv').val(),
+        refresh_page: true,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        window.location.replace(data.location)
+      },
+      error: function(data) {
+        $('#credit_card_error_message').text(data.responseText)
+        $('#update_credit_card').text('UPDATE')
+      }
+    }); // end of ajax function
+    }
+  })
+
+  $('#update_expired_credit_card').click(function() {
+    $('#update_credit_card').text('Updating...')
+    $('#credit_card_error_message').text('')
+    if (!$('#update_credit_card_number').val()) {
+      $('#credit_card_error_message').text("Please enter credit card number")
+      $('#update_credit_card').text('UPDATE')
+    }
+    else {
+      $.ajax({
+      url: '/user_subscriptions/update_expired_credit_card_details',
+      type: 'POST',
+      dataType: "json",
+      data: {
+        subscription_id: $("#subscription_id").val(),
+        card_number: $('#update_credit_card_number').val(),
+        month: $('#update_credit_card_month').val(),
+        year: $('#update_credit_card_year').val(),
+        cvv: $('#update_credit_card_cvv').val(),
+        refresh_page: true,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        window.location.replace(data.location)
+      },
+      error: function(data) {
+        $('#credit_card_error_message').text(data.responseText)
+        $('#update_credit_card').text('UPDATE')
+      }
+    }); // end of ajax function
+    }
+  })
+
+  $("#add_insurance").click(function() {
+    $('.insurance_error').text("");
+    $(".insurance_company_error").html("");
+    document.getElementById('company_name').value = ""
+    $('#create_insurance').modal('show');
+  });
+
+  $("#add_salesman").click(function() {
+    $('.insurance_error').text("");
+    $(".insurance_company_error").html("");
+    // document.getElementById('company_name').value = ""
+    $('#create_insurance').modal('show');
+  });
+
+  $("#add_staff").click(function() {
+    // $('.insurance_error').text("");
+    // $(".insurance_company_error").html("");
+    // document.getElementById('company_name').value = ""
+    $('#admin_add_staff').modal('show');
+  });
+
+  $("#add_wellness_service").click(function() {
+    $('#add_wellness_service_model').modal('show');
+  });
+
+  $("#password").on('change', function() {
+    $('.text-danger').empty();
+  });
+
+  $("#confirm_password").on('change', function() {
+    $('.text-danger').empty();
+  });
+
+  $('.admin_patient_update_password_button').click(function(){
+    $('.text-danger').empty();
+    if(document.getElementById('password').value == ''|| document.getElementById('confirm_password').value == ''){
+      $('.text-danger').text("Please fill the fields");
+    }
+    else {
+      $.ajax({
+      url: '/patients/admin_reset_password',
+      type: 'POST',
+      dataType: "json",
+      data: {
+        password: $("#password").val(),
+        password_confirmation: $('#confirm_password').val(),
+        refresh_page: true,
+        id: $("#patient_id_admin_page").val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        window.location.replace(data.location)
+      },
+      error: function(data) {
+        $('.text-danger').text(data.responseText)
+      }
+    }); // end of ajax function
+    }
+  })
+
+  $("#designation_button").click(function() {
+    if (document.getElementById('user_title').value == "") {
+      $('.user_title_error').text("Enter Professional Designation")
+    }
+    else{
+    $('.user_title_error').hide();
+    var incremental=$('#incremental tr').length;
+    incremental = incremental-1 ;
+    $('#addr'+incremental).html("<td><input class='form-control' type='text' name='designation"+incremental+"' id='designation"+incremental+"'></td><td onclick='tdclick(this);' id='deleteRow'><input type='button' class='btn custom_btn remove' value='Remove'></td>");
+    $('#incremental').append('<tr id="addr'+(incremental+1)+'"');
+    $('#titlecount').val(incremental+1) ;
+  }
+  });
+
+
+$("#is_residency").on("click", function(){
+  check = $("#is_residency").is(":checked");
+  if(check) {
+      var physician_internship_val = $("#physician_internship").val();
+      $('#physician_residency').val(physician_internship_val); 
+  } else {
+      $('#physician_residency').val(''); 
+  }
+});
+
+$("#is_fellowship").on("click", function(){
+  check = $("#is_fellowship").is(":checked");
+  if(check) {
+      var physician_internship_val = $("#physician_residency").val();
+      $('#physician_fellowship').val(physician_internship_val); 
+  } else {
+      $('#physician_fellowship').val(''); 
+  }
+});
+
+  $("#create_insurance_button").click(function() {
+    if (document.getElementById('company_name').value == "") {
+      $('.insurance_company_error').text("Enter name")
+    }
+    else{
+      $.ajax({
+        url: '/insurance_companies',
+        type: 'POST',
+        data: {
+          company_name: document.getElementById('company_name').value,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+          if (data.status) {
+            window.location.reload();
+          } else {
+            $(".insurance_company_error").html("");
+              $(".insurance_company_error").append("'"+data.name+"' already exists. Please enter a different name.");
+            }
+        },
+        error: function(data) {}
+      }); // end of ajax function
+    }
+  });
+
+  $("#update_family").click(function() {
+    // if (document.getElementById('family_member_email').value == "") {
+    //   $('.insurance_company_error').text("Enter Email")
+    // }
+    // if (document.getElementById('family_member_first_name').value == "") {
+    //   $('.insurance_company_error').text("Enter First Name")
+    // }
+    // if (document.getElementById('family_member_last_name').value == "") {
+    //   $('.insurance_company_error').text("Enter Last Name")
+    // }
+
+      $.ajax({
+        url: '/family_members/update_family_member',
+        type: 'PUT',
+        data: {
+          email: document.getElementById('family_member_email').value,
+          first_name: document.getElementById('family_member_first_name').value,
+          last_name: document.getElementById('family_member_last_name').value,
+          phone_number: document.getElementById('family_phone_number').value,
+          date_of_birth: document.getElementById('family_member_date_of_birth').value,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+          if (data.status == true) {
+           $("#update_family_message").append(data.message)
+          }
+        },
+        error: function(data) {}
+      }); // end of ajax function
+
+  });
+
+  $(".appointment_ready_cancel").click(function(e){
+    physician_user_schedules = [];
+    $("#appointment_question").val('');
+  });
+
+var get_region_physicians, user;
+
+$(document).on('ready', function() {
+  return $("#region_list").on('change', function() {
+    get_region_physicians($('#region_list').val());
+    $('#region_physician_list').html('');
+    $("#doctor-schedule1").hide();
+    return $("#doctor-schedule2").hide();
+  });
+});
+
+get_region_physicians = function(region_id) {
+
+  if (window.location.search.substring(1, 3) === "id") {
+    user = window.location.search.substring(1).split('id=').pop();
+  }
+
+  $.ajax({
+    url: '/physicians/check_physician_list',
+    type: 'GET',
+    data: {
+      region_id: $('#region_list').val(),
+      user_id: user,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    beforeSend: function() {},
+    error: function(jqXHR, textStatus, errorThrown) {
+      return console.log("AJAX Error: " + textStatus);
+    },
+    success: function(data, textStatus) {
+      $('#region_physician_list').empty();
+      $('#region_physician_list').append("<option value>Select</option>");
+      if (data.physician_infos !== null) {
+        return Object.keys(data.physician_infos).sort().forEach(function(key, index1) {
+          $('#region_physician_list').append('<optgroup id=' + index1 + ' label=' + JSON.stringify(key) + '></optgroup>');
+          return data.physician_infos[key].sort().forEach(function(m, index) {
+            return $('#' + index1).append('<option value=' + m['id'] + '>' + m['designated_full_name'] + '</option>');
+          });
+        });
+      }
+    }
+  });
+}
+
+
+if (window.location.href.indexOf("set_appointment") > -1){
+  get_region_physicians($('#region_list').val());
+}
+
+
+  //if patient has invite and dropdowns are prepopulated, trigger change to auto select physician
+  if ($("#region option:selected").val() != ''){
+    $('#region').trigger('change');
+  }
+
+  $('#patient_edit_button').click(function(e){
+    window.location.reload();
+   });
+
+
+
+  $("#update_insurance_button").click(function() {
+    if (document.getElementById('company_name_update').value == "") {
+      $('.insurance_company_error').text("Enter name")
+    } else {
+      $.ajax({
+        url: '/insurance_companies/' + document.getElementById('company_id_update').value,
+        type: 'PATCH',
+        data: {
+          id: document.getElementById('company_id_update').value,
+          company_name: document.getElementById('company_name_update').value,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+          if (data.status) {
+            window.location.reload();
+          } else {
+            $(".insurance_company_error").html("");
+              $(".insurance_company_error").append("'"+data.name+"' already exists. Please enter a different name.");
+            }
+        },
+        error: function(data) {}
+          }); // end of ajax function
+    }
+  });
+
+
+ var vacations_list =[];
+  $("#physician_vacation_button").click(function() {
+    var user_id;
+   if (window.location.search.substring(1, 18) === "physician_user_id") {
+      user_id = window.location.search.substring(1).split('physician_user_id=').pop();
+     }
+  $.ajax({
+    url: '/physicians/physician_vacations',
+    type: 'GET',
+    data: {
+      physician_user_id: user_id,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+     if(data.status==true){
+       vacations_list = data.vacations;
+     }
+      $("#set-vacation-mode").modal('show');
+      $('#datepicker123').datepicker("setDate",vacations_list);
+      $("#vacation_start_date").text(data.start_date);
+      $("#vacation_end_date").text(data.end_date);
+    }
+  });
+});
+var date = new Date();
+var the_date;
+date.setDate(date.getDate()+1);
+$('#datepicker123').datepicker({
+ multidate: true,
+ startDate: date,
+ format: 'dd/mm/yyyy',
+ todayHighlight: true
+}).on('changeDate', function() {
+ the_date=  $('#datepicker123:first').datepicker('getDates');
+ date_list =the_date;
+});
+ var physician_vacations_count;
+ $("#physician_vacation_date_button").click(function(){
+   var vacations= date_list;
+   physician_vacation = physician_vacations_count;
+   var user_id;
+  if (window.location.search.substring(1, 18) === "physician_user_id") {
+     user_id = window.location.search.substring(1).split('physician_user_id=').pop();
+    }
+      $.ajax({
+        url: '/physicians/physician_vactions_list',
+        type: 'GET',
+        data: {
+          physician_user_id:user_id,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+          if (data.status == true && vacations.length == 0)
+          {
+              $('.vacation_error').text("Please select slots")
+          }
+          else{
+            $.ajax({
+              url: '/physicians/update_physician_vacation',
+               type: 'POST',
+               data: {
+                 vacation_dates:date_list,
+                 date_count:date_list.length,
+                 physician_user_id:user_id,
+                 authenticity_token: $('meta[name=csrf-token]').attr('content')
+               },
+               success: function(data) {
+                 if(data.status == false && data.errors.length!=0){
+                   errors = data.errors;
+                   for(i=0; i< data.errors.length; i++){
+                     $('.vacation_error').html("");
+                     $('.vacation_error').append( '<p>'+errors[i]+'<p>');
+                   }
+                 }
+                 else if(data.status==true ){
+                   window.location.reload();
+                 }
+               }
+             });
+          }
+        },
+        error: function(data) {}
+      });
+    });
+
+
+  $("#add_specialty").click(function() {
+    $('.specialty_error').html("");
+    document.getElementById('specialty_name').value = ""
+    $('#create_specialty').modal('show');
+  });
+
+  $("#add_resource").click(function() {
+    $('.resource_error').html("");
+    $('#create_resource').modal('show');
+  });
+
+  $('#agreement_button').click(function(e){
+    e.preventDefault();
+  });
+
+
+  $('#patient_edit_button').click(function(e){
+    window.location.reload();
+  });
+
+
+  $("#create_specialty_button").click(function() {
+    var allowedFiles = ['jpg','png','jpeg','gif', 'pdf'];
+    var fileUpload = document.getElementById("specialty_image");
+    var file_data = ''
+    if (document.getElementById('specialty_image').value != "") {
+      file_data = $("#specialty_image").prop("files")[0];   // Getting the properties of file from file field
+    }
+    var form_data = new FormData();
+    var name = $('#specialty_name').val() ;
+    var specialty_alias =$('#specialty_alias').val();
+    var specialty_type = $('#specialty_type').val();
+    var group_name = $('#group_name').val();
+    var authenticity_token = $('meta[name=csrf-token]').attr('content')               // Creating object of FormData class
+    form_data.append("specialty_image", file_data)
+    form_data.append("name", name)
+    form_data.append("specialty_alias", specialty_alias)
+    form_data.append("specialty_type", specialty_type)
+    form_data.append("group_name", group_name)
+    form_data.append("specialty_category", $('#specialty_category').val())
+    form_data.append("authenticity_token", authenticity_token)
+    var regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(" + allowedFiles.join('|') + ")$");
+    if (document.getElementById('specialty_name').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter name")
+    }
+    else if (document.getElementById('specialty_alias').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter alias")
+    }
+    else if (document.getElementById('group_name').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter group name")
+    }
+    else
+    {
+      $.ajax({
+      url: '/specialties',
+      type: 'POST',
+      dataType: 'json',
+      contentType: false,
+      processData: false,
+      data: form_data,
+      success: function(data) {
+        if (data.status == true) {
+          window.location.reload();
+        }
+        else{
+          $(".specialty_error").html("")
+          if (data.errors){
+            $(".specialty_error").html("")
+            $(".specialty_error").append(data.errors);
+          }else{
+            $(".specialty_error").html("")
+            $(".specialty_error").append("Speciality not added, Please try again");            
+          }
+        }
+      },
+      error: function(data) {}
+        }); // end of ajax function
+ }
+  });
+
+  $("#update_speciality_button").click(function() {
+    var allowedFiles = ['jpg','png','jpeg','gif', 'pdf'];
+    var fileUpload = document.getElementById("specialty_image_update");
+    var form_data = new FormData();
+    var file_data = ''
+    if (document.getElementById('specialty_image_value').value != "") {
+      file_data = $("#specialty_image_update").prop("files")[0];
+    }
+    var id =$('#specialty_id_update').val();
+    var name = $('#specialty_name_update').val() ;
+    var specialty_alias =$('#specialty_alias_update').val();
+    var specialty_type = $('#specialty_type_update').val();
+    var group_name = $('#specialty_group_name_update').val();                    // Creating object of FormData class
+    form_data.append("specialty_image", file_data)
+    form_data.append("name", name)
+    form_data.append("specialty_alias", specialty_alias)
+    form_data.append("specialty_type", specialty_type)
+    form_data.append("id", id)
+    form_data.append("group_name", group_name)
+    form_data.append("specialty_category", $('#specialty_category_update').val())
+    
+    var regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(" + allowedFiles.join('|') + ")$");
+    if (document.getElementById('specialty_name_update').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter name")
+    }
+    else if (document.getElementById('specialty_alias_update').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter alias")
+    }
+    else if (document.getElementById('specialty_group_name_update').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter group name")
+    }
+    else
+    {
+    $.ajax({
+      url: '/specialties/' + document.getElementById('specialty_id_update').value,
+      type: 'PATCH',
+      dataType: 'json',
+      cache: false,
+      contentType: false,
+      processData: false,
+      data: form_data,
+      success: function(data) {
+        if (data.status == true) {
+          window.location.reload();
+        } else if(data.errors == "Name This Specialty name already exists. Please enter a different name") {
+           $(".specialty_error").html("")
+           $(".specialty_error").append("'"+data.name+"' already exists. Please enter a different name.");
+        }
+        else{
+          $(".specialty_error").html("")
+          $(".specialty_error").append(data.errors);
+        }
+      },
+      error: function(data) {
+        $(".specialty_error").html("")
+        $(".specialty_error").append(data.errors);
+      }
+        }); // end of ajax function
+      }
+  });
+
+
+
+  $("#create_resource_button").click(function() {
+    var allowedFiles = ['jpg','png','jpeg','gif'];
+    var pdfFiles =['pdf']
+    var videoFiles = ['mov','mpg','m4v','mp3'];
+    var previewImage = document.getElementById("preview_image_url");
+    var resourceImage = document.getElementById("resource_url");
+    var file_data = $("#preview_image_url").prop("files")[0];   // Getting the properties of file from file field
+    var resource_url = $("#resource_url").prop("files")[0]; 
+    var form_data = new FormData();
+    var resource_title = $('#resource_title').val() ;
+    var resource_type = $('#resource_type').val();
+    var authenticity_token = $('meta[name=csrf-token]').attr('content')               // Creating object of FormData class
+    var regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(" + allowedFiles.join('|') + ")$");
+    var pdf_regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(" + pdfFiles.join('|') + ")$");
+    var video_regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(" + videoFiles.join('|') + ")$");
+    if(document.getElementById('resource_type').value == "pdf"){
+    form_data.append("preview_image_url", file_data)
+    }
+    if(document.getElementById('resource_type').value == "video"){
+    form_data.append("video_url", resource_url)
+    }
+    else{
+    form_data.append("pdf_url", resource_url)
+    }
+    form_data.append("title", resource_title)
+    form_data.append("resource_type", resource_type)
+    form_data.append("authenticity_token", authenticity_token)
+    if (document.getElementById('resource_title').value == "") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Enter title")
+    }
+    else if (document.getElementById('resource_type').value == "") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Enter group name")
+    }
+    else if (document.getElementById('resource_type').value == "pdf" && document.getElementById('preview_image_url').value == "") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please upload image")
+    }
+    else if (document.getElementById('resource_type').value == "pdf" && !regex.test(previewImage.value.toLowerCase())) {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please select a valid image file for Resource Preview Image")
+     }
+     else if (document.getElementById('resource_url').value == "" && document.getElementById('resource_type').value == "pdf") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please upload pdf file")
+    }
+    else if ((!pdf_regex.test(resourceImage.value.toLowerCase())) && document.getElementById('resource_type').value == "pdf") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please select a valid pdf file for Resource File")
+    }
+    else if (document.getElementById('resource_url').value == "" && document.getElementById('resource_type').value == "video") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please upload video file")
+    }
+    else if ((!video_regex.test(resourceImage.value.toLowerCase())) && document.getElementById('resource_type').value == "video") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please select a valid video file for Resource File")
+    }
+  
+    else
+    {
+      $.ajax({
+      url: '/resources',
+      type: 'POST',
+      dataType: 'json',
+      contentType: false,
+      processData: false,
+      data: form_data,
+      beforeSend: function() {
+       $('#create_resource_button').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      },
+
+      success: function(data) {
+        if (data.status == true) {
+          window.location.reload();
+        }
+        else{
+          if (data.errors){
+            $(".resource_error").html("")
+            $(".resource_error").append(data.errors);
+          }
+        }
+      },
+      complete: function() {
+        $('#create_resource_button').prop('disabled', false).text('Save');
+     },
+      error: function(data) {}
+        }); // end of ajax function
+    }
+  });
+
+
+  $("#update_resource_button").click(function() {
+    var allowedFiles = ['jpg','png','jpeg','gif'];
+    var pdfFiles =['pdf']
+    var videoFiles = ['mov','mpg','m4v','mp3'];
+    var previewImage = document.getElementById("preview_image_url_update");
+    var resourceImage = document.getElementById("resource_image_value");
+    var file_data = $("#preview_image_url_update").prop("files")[0];   // Getting the properties of file from file field
+    var resource_url = $("#resource_url_update").prop("files")[0]; 
+    var form_data = new FormData();
+    var resource_title = $('#resource_title_update').val() ;
+    var resource_type = $('#resource_type_update').val();
+    var authenticity_token = $('meta[name=csrf-token]').attr('content')               // Creating object of FormData class
+    var regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(" + allowedFiles.join('|') + ")$");
+    var pdf_regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(" + pdfFiles.join('|') + ")$");
+    var video_regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(" + videoFiles.join('|') + ")$");
+
+    if(document.getElementById('resource_type_update').value == "video"){
+      form_data.append("preview_image_url", file_data)
+      }
+    if(document.getElementById('resource_type_update').value == "video"){
+    form_data.append("video_url", resource_url)
+    }
+    else{
+    form_data.append("pdf_url", resource_url)
+    }
+    form_data.append("title", resource_title)
+    form_data.append("resource_type", resource_type)
+    form_data.append("authenticity_token", authenticity_token)
+    if (document.getElementById('resource_title_update').value == "") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Enter title")
+    }
+    else if (document.getElementById('resource_type_update').value == "") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Enter group name")
+    }
+    else if (document.getElementById('resource_type_update').value == "pdf" && document.getElementById('preview_image_value').value == "") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please upload image")
+    }
+    else if (document.getElementById('preview_image_url_update').value != "" && document.getElementById('preview_image_url_update').value != null && document.getElementById('resource_type').value == "pdf"&& !regex.test(previewImage.value.toLowerCase())) {
+      $(".resource_error").html("")
+      $('.resource_error').append(" Please select a valid image file for Resource Preview Image")
+     }
+     else if (document.getElementById('resource_image_value').value == "" && document.getElementById('resource_type_update').value == "pdf") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please upload pdf file")
+    }
+    else if (document.getElementById('resource_url_update').value != null && (!pdf_regex.test(resourceImage.value.toLowerCase())) && document.getElementById('resource_type_update').value == "pdf") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please select a valid pdf file for Resource File")
+    }
+    else if (document.getElementById('resource_image_value').value == "" && document.getElementById('resource_type_update').value == "video") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please upload video file")
+    }
+    else if ((!video_regex.test(resourceImage.value.toLowerCase())) && document.getElementById('resource_type_update').value == "video") {
+      $(".resource_error").html("")
+      $('.resource_error').append("Please select a valid video file for Resource File")
+    }
+  
+    else
+    {
+      $.ajax({
+      url: '/resources/' + document.getElementById('resource_id_update').value,
+      type: 'PATCH',
+      dataType: 'json',
+      contentType: false,
+      processData: false,
+      data: form_data,
+
+      beforeSend: function() {
+        $('#update_resource_button').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+       },
+      success: function(data) {
+        if (data.status == true) {
+          window.location.reload();
+        }
+        else{
+          if (data.errors){
+            $(".resource_error").html("")
+            $(".resource_error").append(data.errors);
+          }
+        }
+      },
+      complete: function() {
+        $('#update_resource_button').prop('disabled', false).text('Save');
+     },
+      error: function(data) {}
+        }); // end of ajax function
+ }
+  });
+
+
+  $("#resource_type").change(function() {
+    if(document.getElementById('resource_type').value == "pdf" ){
+      $('.preview_image_section').show();
+    }
+    else if(document.getElementById('resource_type').value == "video" ){
+      $('.preview_image_section').hide();
+    }
+
+  });
+
+  $("#resource_type_update").change(function() {
+    if(document.getElementById('resource_type_update').value == "pdf" ){
+      $('#preview_update_image_section').show();
+    }
+    else if(document.getElementById('resource_type_update').value == "video" ){
+      $('#preview_update_image_section').hide();
+    }
+
+  });
+
+
+  $("#update_staff_button").click(function() {
+    var phone =document.getElementById('staff_mobile_update').value
+    var phone_pattern = /^[1-9]{1}[0-9]{2}-[0-9]{3}-[0-9]{4}$/.test(phone);
+    if (document.getElementById('staff_first_name_update').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter first name")
+    }
+    else if (document.getElementById('staff_last_name_update').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter last name")
+    }
+    else if (document.getElementById('staff_email_update').value == "") {
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Enter email")
+    }
+    else if(phone != "" && phone_pattern==false){
+      $(".specialty_error").html("")
+      $('.specialty_error').append("Phone number should be 10 digits in format xxx-xxx-xxxx")
+     }
+    else
+    {
+    $.ajax({
+      url: '/staffs/' + document.getElementById('staff_id').value,
+      type: 'PATCH',
+       data: {
+          first_name: document.getElementById('staff_first_name_update').value,
+          last_name: document.getElementById('staff_last_name_update').value,
+          email: document.getElementById('staff_email_update').value,
+          phone: document.getElementById('staff_mobile_update').value,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+      success: function(data) {
+          window.location.reload();
+      },
+        }); // end of ajax function
+      }
+  });
+
+  $(".user_country").change(function() {
+    $.ajax({
+      url: '/api/address/supported_states',
+      type: 'GET',
+       data: {
+          country_code: $(this).val()
+        },
+      success: function(data) {
+        state_obj = $('#user_practice_address_attributes_state, #user_home_address_attributes_state')
+        state_obj.empty().append("<option value=''>Select</option>")
+        $.each(data.states, function( index, m ) {
+          state_obj.append('<option value=' + m[1] + '>' + m[0] + '</option>')
+        });
+      },
+    }); // end of ajax function
+  });
+
+  $("#update_wellness_service_button").click(function() {
+    if ($('#wellness_service_title_update').val() == "") {
+      $('.wellness_service_error').html("Please enter Title")
+    } else if ($('#wellness_service_order_update').val() == ""){
+      $('.wellness_service_error').html("Please enter Order")
+    }
+    else
+    {
+    $.ajax({
+      url: '/wellness_services/' + $('#wellness_service_id').val(),
+      type: 'PATCH',
+       data: {
+          title: $('#wellness_service_title_update').val(),
+          description: $('#wellness_service_description_update').val(),
+          amount: $('#wellness_service_amount_update').val(),
+          discount_percent: $('#wellness_service_discount_update').val(),
+          order_number: $('#wellness_service_order_update').val(),
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+      success: function(data) {
+          window.location.reload();
+      },
+        }); // end of ajax function
+      }
+  });
+
+  $("#preview_image_url_update").change(function(){
+    file_name = $(this).val().split('\\').splice(-1)
+      $('#preview_image_value').val(file_name);
+           //submit the form here
+   });
+
+   $("#resource_url_update").change(function(){
+    file_name = $(this).val().split('\\').splice(-1)
+      $('#resource_image_value').val(file_name);
+           //submit the form here
+   });
+
+
+  $("#specialty_image_update").change(function(){
+    file_name = $(this).val().split('\\').splice(-1)
+      $('#specialty_image_value').val(file_name);
+           //submit the form here
+   });
+   $("#payment_plan").change(function(){
+     $("#discount_coupon_id").val('');
+     $("#apply_promo_code").val('');
+     $(".promo_code_error_message").html('')
+     $.ajax({
+       url: '/patients/get_plan_details',
+       type: 'GET',
+       dataType: "json",
+       data: {
+         plan: document.getElementById('payment_plan').value,
+         region: document.getElementById('patient_msa_region').value,
+         authenticity_token: $('meta[name=csrf-token]').attr('content')
+       },
+       success: function(data) {
+         if(data.success==true){
+          $("#admin_plan_type").html(data.plan_type);
+          $("#admin_plan_duration").html(data.plan_duration);
+          $("#admin_plan_amount").html(data.amount);
+          $("#admin_plan_total").html(data.amount);
+          $("#display_admin_plan_type").html(data.amount);
+          $("#coupon_plan_details_section").hide();
+          $("#subscription_date").html(data.end_date);
+          $("#duration_type").html(data.duration_type);
+          $("#plan_details_section").show();
+       }
+       }
+     });
+
+    });
+  
+  $(function () {
+    $("#inactive_checkbox").click(function () {
+      if($("#inactive_checkbox").prop('checked') == true){
+         $('.inactive').hide();
+      } 
+      else {
+      $('.inactive').show();
+      }
+    });
+  });
+
+  $("#add_sub_specialty").click(function() {
+    $('.sub_specialty_error').text("");
+    document.getElementById('sub_specialty_name').value = ""
+    $('#sub_specialty_create').modal('show');
+  });
+
+  $("#create_sub_specialty").click(function() {
+    if (document.getElementById('sub_specialty_name').value == "") {
+      $(".sub_specialty_error").html("")
+      $('.sub_specialty_error').append("Enter name")
+    }
+    else
+    {
+      $.ajax({
+        url: '/sub_specialties',
+        type: 'POST',
+        data: {
+          name: document.getElementById('sub_specialty_name').value,
+          specialty_type: document.getElementById('specialty_type').value,
+          specialty_id: document.getElementById('specialty_id').value,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+        if (data.status) {
+          window.location.reload();
+        } else {
+           $(".sub_specialty_error").html("")
+           $(".sub_specialty_error").append("'"+data.name+"' already exists. Please enter a different name.");
+        }
+      },
+      error: function(data) {}
+        }); // end of ajax function
+    }
+  });
+
+  $("#discount_code_value").keydown(function (event) {
+      // Allow only backspace and delete
+      console.log($(this).val().length);
+      if($(this).val().length <= 4 || event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 )
+      {
+          if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9) {
+              // let it happen, don't do anything
+          } else {
+              // Ensure that it is a number and stop the keypress
+              if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105)) {
+                  event.preventDefault();
+              }
+          }
+      }else{
+
+          event.preventDefault();
+      }
+
+  });
+
+  $("#duration_in_month,#max_redemption").keydown(function (event) {
+      // Allow only backspace and delete
+      console.log($(this).val().length);
+      if($(this).val().length <= 4 || event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 )
+      {
+          if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9) {
+              // let it happen, don't do anything
+          } else {
+              // Ensure that it is a number and stop the keypress
+              if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105)) {
+                  event.preventDefault();
+              }
+          }
+      }else{
+
+          event.preventDefault();
+      }
+
+  });
+
+  $('#create_plan').click(function() {
+    if (document.getElementById('msa_region_name').value == "") {
+      $('.msa_region_error').text("Select Msa Region")
+    }
+    else if (document.getElementById('amount').value == "") {
+      $('.amount_error').text("Enter amount")
+    }
+    else if (document.getElementById('physician_payout').value == "") {
+      $('.physician_payout_error').text("Enter physician payout")
+    }
+    else if (document.getElementById('staff_payout').value == "") {
+      $('.staff_payout_error').text("Enter staff payout")
+    }
+    else if (document.getElementById('ckh_payout').value == "") {
+      $('.ckh_payout_error').text("Enter ckh payout")
+    }
+    else{
+      $.ajax({
+      url: '/msa_regions/create_region_plan',
+      type: 'POST',
+      dataType: "json",
+      data: {
+        msa_region_id: $("#msa_region_name").val(),
+        subscription_plan: $('#subscription_plan').val(),
+        amount: $('#amount').val(),
+        physician_payout: $('#physician_payout').val(),
+        staff_payout: $('#staff_payout').val(),
+        ckh_payout: $('#ckh_payout').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status==true){
+          location.reload()
+        }
+        else if (data.status==false){
+          $(".plan_error").html(data.errors)
+        }
+
+    },
+      error: function(data) {
+
+      }
+    }); // end of ajax function
+  }
+  })
+
+  $('#create_monthly_plan').click(function() {
+    if (document.getElementById('monthly_msa_region_name').value == "") {
+      $('.monthly_msa_region_error').text("Select Msa Region")
+    }
+    else if (document.getElementById('monthly_amount').value == "") {
+      $('.monthly_amount_error').text("Enter amount")
+    }
+    else if (document.getElementById('monthly_physician_payout').value == "") {
+      $('.monthly_physician_payout_error').text("Enter physician payout")
+    }
+    else if (document.getElementById('monthly_staff_payout').value == "") {
+      $('.monthly_staff_payout_error').text("Enter staff payout")
+    }
+    else if (document.getElementById('monthly_ckh_payout').value == "") {
+      $('.monthly_ckh_payout_error').text("Enter ckh payout")
+    }
+    else {
+
+    $.ajax({
+      url: '/msa_regions/create_region_plan',
+      type: 'POST',
+      dataType: "json",
+      data: {
+        msa_region_id: $("#monthly_msa_region_name").val(),
+        subscription_plan: $('#monthly_subscription_plan').val(),
+        amount: $('#monthly_amount').val(),
+        physician_payout: $('#monthly_ckh_payout').val(),
+        staff_payout: $('#monthly_staff_payout').val(),
+        ckh_payout: $('#monthly_ckh_payout').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status==true)
+        $(".plan_error").html("Msa Region Plan is successfully created.")
+        location.reload()
+      },
+      error: function(data) {
+
+      }
+    }); // end of ajax function
+}
+  })
+
+  $('#create_discount_code').click(function() {
+   if (document.getElementById('coupon_plan_type').value == "") {
+      $(".discount_code_error").html("")
+      $('.discount_code_error').text("Select Plan Type")
+    }
+    else if (document.getElementById('discount_code_value').value == "") {
+      $(".discount_code_error").html("")
+      $('.discount_code_error').text("Enter discount code value")
+    }
+    else if (document.getElementById('duration').value == "") {
+      $(".discount_code_error").html("")
+      $('.discount_code_error').text("Please select duration")
+    }
+    else if (document.getElementById('id_code').value == "") {
+      $(".discount_code_error").html("")
+      $('.discount_code_error').text("Enter id code")
+    }
+    else {
+      $('#create_discount_code').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      $.ajax({
+        url: '/msa_regions/create_discount_code',
+        type: 'POST',
+        dataType: "json",
+        data: {
+          plan_type: $('#coupon_plan_type').val(),
+          value: $('#discount_code_value').val(),
+          discount_by: $('#discount_by').val(),
+          duration: $('#duration').val(),
+          id_code: $('#id_code').val(),
+          max_redemption: $('#max_redemption').val(),
+          redeem_by: $('#redeem_by').val(),
+          duration_in_month: $('#duration_in_month').val(),
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        beforeSend: function() {
+         $('#create_discount_code').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+        },
+        success: function(data) {
+          $('#create_discount_code').prop('disabled', false).text('Save and Continue');
+          if (data.status == true){
+            //$(".discount_code_error").append(data.message);
+            window.location.reload();
+          }else if (data.status == false){
+            $(".discount_code_error").html("")
+            $(".discount_code_error").append(data.message);
+          }
+        },
+        complete: function() {
+          $('#create_discount_code').prop('disabled', false).text('Save');
+       },
+        error: function(data) {
+          $('#schedule_button').prop('disabled', false).text('Save and Continue');
+          $(".discount_code_error").html("")
+          $(".discount_code_error").html("Discount Code not created")
+          window.location.reload();
+        }
+      }); // end of ajax function
+    }
+  })
+
+  $("#msa_region_name,#subscription_plan").change(function(){
+    $.ajax({
+    url: '/msa_regions/update_yearly_region_plan',
+    type: 'POST',
+    dataType: "json",
+    data: {
+      msa_region_id: $("#msa_region_name").val(),
+      plan_type: $('#subscription_plan').val()
+    },
+    success: function(data) {
+    if (data.status){
+
+       $('#subscription_plan').val(data.subscription_plan),
+       $('#amount').val(data.amount),
+       $('#physician_payout').val(data.physician_payout),
+       $('#staff_payout').val(data.staff_payout),
+       $('#ckh_payout').val(data.ckh_payout)
+     }
+
+    },
+    error: function(data) {
+
+    }
+  }); // end of ajax function
+
+
+});
+
+$("#monthly_msa_region_name,#monthly_subscription_plan").change(function(){
+  $.ajax({
+  url: '/msa_regions/update_monthly_region_plan',
+  type: 'POST',
+  dataType: "json",
+  data: {
+    msa_region_id: $("#monthly_msa_region_name").val(),
+    plan_type: $('#monthly_subscription_plan').val()
+  },
+  success: function(data) {
+  if (data.status){
+     $('#monthly_subscription_plan').val(data.subscription_plan),
+     $('#monthly_amount').val(data.amount),
+     $('#monthly_physician_payout').val(data.physician_payout),
+     $('#monthly_staff_payout').val(data.staff_payout),
+     $('#monthly_ckh_payout').val(data.ckh_payout)
+   }
+
+  },
+  error: function(data) {
+
+  }
+}); // end of ajax function
+
+
+});
+
+  $("#update_sub_specialty").click(function() {
+    if (document.getElementById('sub_specialty_name_update').value == "") {
+      $('.sub_specialty_error').text("Enter name")
+    }
+    $.ajax({
+      url: '/sub_specialties/' + document.getElementById('sub_id_update').value,
+      type: 'PATCH',
+      data: {
+        id: document.getElementById('sub_id_update').value,
+        name: document.getElementById('sub_specialty_name_update').value,
+        specialty_type: document.getElementById('sub_specialty_type_update').value,
+        specialty_id: document.getElementById('sub_specialty_id_update').value,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status) {
+          window.location.reload();
+        } else {
+           $(".sub_specialty_error").html("")
+           $(".sub_specialty_error").append("'"+data.name+"' already exists. Please enter a different name.");
+        }
+      },
+      error: function(data) {}
+        }); // end of ajax function
+  });
+
+  $("#admin_reset_password").click(function() {
+    $("#admin_reset_password_modal").modal('show');
+  })
+
+  $("#add_question").click(function() {
+    $('.question_error').text("");
+    document.getElementById('question_name').value = ""
+    $('#question').modal('show');
+  });
+
+  $("#create_question").click(function() {
+    if (document.getElementById('question_name').value == "") {
+      $('.question_error').text("Enter question")
+    }
+    $.ajax({
+      url: '/specialties/'+document.getElementById('specialty_id').value+'/additional_questionnaires',
+      type: 'POST',
+      data: {
+        question: document.getElementById('question_name').value,
+        question_type: document.getElementById('question_type').checked,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+
+      },
+      beforeSend: function() {
+        return $('#create_question').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      },
+      success: function(data) {
+        window.location.reload();
+      },
+      complete: function() {
+        return $('#create_question').prop('disabled', false).text('Save');
+      },
+      error: function(data) {}
+
+    });
+  });
+
+  $("#update_additional_question_button").click(function() {
+    if (document.getElementById('question_update').value == "") {
+      $('.additional_question_error').text("Enter Addtional Question")
+    }
+    else
+    {
+      $.ajax({
+        url: '/specialties/'+document.getElementById('specialty_id').value+'/additional_questionnaires/' + document.getElementById('question_id_update').value,
+        type: 'PATCH',
+        data: {
+          id: document.getElementById('question_id_update').value,
+          question: document.getElementById('question_update').value,
+          question_type: document.getElementById('question_type_update').checked,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+          if (data.status) {
+            window.location.reload();
+          } else {
+            $(".additional_question_error").html("");
+              $(".additional_question_error").append("'"+data.name+"' already exists. Please enter a different name.");
+            }
+        },
+        error: function(data) {}
+          }); // end of ajax function
+    }
+  });
+
+  $("#add_msa_region").click(function() {
+    $('.msa_region_error').text("");
+    document.getElementById('msa_region_name').value = ""
+    $('#state_id').val("");
+    $('#create_msa_region').modal('show');
+  }); // opening create region popup
+
+
+  $("#create_msa_region_button").click(function() {
+    if (document.getElementById('msa_region_name').value == "") {
+      $(".msa_region_error").html("")
+      $('.msa_region_error').append("Enter name")
+    }
+    else if (!$("#state_id").val())
+    {
+      $(".msa_region_error").html("")
+      $('.msa_region_error').append("Select state")
+    }
+       else if (document.getElementById('msa_region_latitude').value == "")
+     {
+       $(".msa_region_error").html("")
+       $('.msa_region_error').append("Enter latitude")
+     }
+        else if (document.getElementById('msa_region_longitude').value == "")
+     {
+       $(".msa_region_error").html("")
+       $('.msa_region_error').append("Enter longitude")
+     }
+    else
+    {
+      $.ajax({
+        url: '/msa_regions',
+        type: 'POST',
+        data: {
+          msa_name: document.getElementById('msa_region_name').value,
+          is_hidden: $("#create_is_hidden").val(),
+          state_id: $("#state_id").val(),
+          latitude: $("#msa_region_latitude").val(),
+          longitude: $("#msa_region_longitude").val(),
+          zipcodes: $("#msa_region_zipcodes_create").val(),
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+        if (data.status) {
+          window.location.reload();
+        } else {
+            $(".msa_region_error").html("")
+            $(".msa_region_error").append(data.errors);
+        }
+      },
+      error: function(data) {}
+        }); // end of ajax function
+    }
+  });
+
+
+  $("#create_is_hidden,#update_is_hidden").on('change', function(){
+    if ($(this).is(':checked')) {
+    $(this).attr('value', 'true');
+    } else {
+    $(this).attr('value', 'false');
+    }
+  });
+
+  $("#update_msa_region_button").click(function() {
+    $(".msa_region_error").html("")
+    if (document.getElementById('msa_region_name_update').value == "") {
+      $('.msa_region_error').text("Enter name")
+    }
+    else if (!$("#state_id_update").val())
+    {
+      $(".msa_region_error").html("")
+      $('.msa_region_error').append("Select state")
+    }
+     else if (!$("#msa_region_latitude_update").val())
+     {
+       $(".msa_region_error").html("")
+       $('.msa_region_error').append("Enter latitude")
+     }
+     else if (!$("#msa_region_longitude_update").val())
+     {
+       $(".msa_region_error").html("")
+       $('.msa_region_error').append("Enter longitude")
+     }
+    else
+    {
+      $.ajax({
+        url: '/msa_regions/'+ document.getElementById('msa_region_id_update').value,
+        type: 'PUT',
+        data: {
+          id: document.getElementById('msa_region_id_update').value,
+          msa_name: document.getElementById('msa_region_name_update').value,
+          state_id: $("#state_id_update").val(),
+          is_hidden: $("#update_is_hidden").val(),
+          latitude: $("#msa_region_latitude_update").val(),
+          longitude: $("#msa_region_longitude_update").val(),
+          zipcodes: $("#msa_region_zipcodes_update").val(),
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+        if (data.status) {
+          window.location.reload();
+        } else {
+          $(".msa_region_error").html("")
+          $(".msa_region_error").append(data.errors);
+        }
+      },
+        error: function(data) {}
+          }); // end of ajax function
+    }
+  });
+
+  $('#add_staff_button').click(function(e) {
+    $.ajax({
+      url: '/staffs/validate_staff_create',
+      type: 'GET',
+      data: {
+        first_name: $("#add_staff_form input[name='user[first_name]']").val(),
+        last_name: $("#add_staff_form input[name='user[last_name]']").val(),
+        email: $("#add_staff_form input[name='user[email]']").val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if(data.success != true){
+          if(data.confirm == true){
+            $.confirm({
+                title: 'Warning!',
+                content: data.message,
+                buttons: {
+                    confirm: {
+                      text: 'Proceed',
+                      btnClass: 'btn-purple',
+                      keys: ['enter', 'return'],
+                      action: function(){
+                        $("#add_staff_form").submit()
+                      }
+                    },
+                    cancel: function () {
+                      $("#add_staff_form")[0].reset()
+                      $('#admin_add_staff').modal('hide');
+                    }
+                }
+            });
+          } else {
+            $.alert({
+                title: 'Error!',
+                content: data.message,
+            });
+          }
+        } else {
+            $("#add_staff_form").submit()
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_msa_region_button").click(function() {
+    $.ajax({
+      url: '/msa_regions/' + $('#msa_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#msa_id_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+       else{
+          $('#delete_msa_region').modal('hide');
+          $('#msa_region_delete_error').html(data.message)
+          $('#delete_msa_region_error').modal('show');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+
+  $("#delete_preference_button").click(function() {
+    $.ajax({
+      url: '/admin_preferences/' + $('#preference_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#preference_id_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+       else{
+          $('#delete_preference').modal('hide');
+          $('#preference_delete_error').html(data.message)
+          $('#delete_preference_error').modal('show');
+        }
+      },
+      error: function(data) {
+      }
+    });
+  });
+
+
+  $("#activate_family_button").click(function() {
+    $.ajax({
+      url: '/family_members/activate_family_member',
+      type: 'POST',
+      data: {
+        id: $('#family_id_activate').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status==true){
+          location.reload()
+        }
+
+    },
+      error: function(data) {}
+    });
+  });
+
+
+  $('#change_region_phase_name').click(function() {
+    var region_count = $('.msa_region_phase_name')
+    var values = [];
+    for (var i = 0; i < region_count.length; i++) {
+      values.push(region_count[i].value);
+    }
+    var region_id = $('.msa_region_id')
+    var ids = [];
+    for (var i = 0; i < region_id.length; i++) {
+      ids.push(region_id[i].value);
+    }
+    $.ajax({
+      url: '/msa_regions/update_msa_region_phase',
+      type: 'PUT',
+      data: {
+        phase_names: values,
+        ids: ids,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        window.location.reload();
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+
+  blank_error_msg = $('.blank_error_msg').text()
+
+  $("#bulk_user_form").on("submit", function(e){
+   
+      if(!$('#upload-field').val()){
+        $('.csv_error').html("File" +" "+ blank_error_msg)
+        return false
+      }
+      else {
+        $('.csv_error').html('')
+        return true
+      }
+  });
+
+  $("#bulk_patient_form").on("submit", function(e){
+  
+      if(!$('#upload-patient-field').val()){
+        $('.csv_error').html("File" +" "+ blank_error_msg)
+        return false
+      }
+      else {
+        $('.csv_error').html('')
+        return true
+      }
+  });
+
+  $("#bulk_physician_form").on("submit", function(e){
+      if(!$('#upload-physician-field').val()){
+        $('.csv_physician_error').html("File" +" "+ blank_error_msg)
+        return false
+      }
+      else {
+        $('.csv_error').html('')
+        return true
+      }
+  });
+
+
+  $("#physician_performance_form").on("submit", function(e){
+      if(!$('#upload-performance-field').val()){
+        $('.csv_error').html("File" +" "+ blank_error_msg)
+        return false
+      }
+      else {
+        $('.csv_error').html('')
+        return true
+      }
+  });
+
+  $('form#patient_sign_up').on("ajax:remotipartComplete", function(e, data) {
+    resp = $.parseJSON(data.responseText);
+    if (resp.status === 422) {
+      $('.csv_error').html(resp.error);
+    }
+    else if (resp.status === 200) {
+      // $('.dataTables_empty').remove();
+      processed = resp.response.processed
+      for(i=0;i < processed.length; i++){
+        $('#success_data_append')
+        .append( '<tr class="table-row">'+'<td>'+processed[i].record["first_name"]+'</td>'+'<td>'+ processed[i].record["last_name"]+'</td>'+'<td>'+ processed[i].record["email"] +'</td>'+'<td>'+processed[i].record["mobile_phone"]+'</td>'+'<td>'+processed[i].record["invite_code"]+'</td>'+'<td>'+processed[i].status+'</td>'+'</tr>');
+      }
+      errors = resp.response.errors
+
+      for(i=0;i<errors.length;i++){
+        $('#failure_data_append').append( '<tr class="table-row">'+'<td>'+errors[i].record["first_name"]+'</td>'+'<td>'+ errors[i].record["last_name"]+'</td>'+'<td>'+ errors[i].record["email"] +'</td>'+'<td>'+errors[i].record["phone_number"]+'</td>'+'<td class="text-danger">'+errors[i].error_messages.join("\n")+'</td>'+'</tr>');
+      }
+      $('.bulk_invite_message').html("File processed successfully.");
+    }
+  });
+
+
+  $('form#bulk_user_form').on("ajax:remotipartComplete", function(e, data) {
+    resp = $.parseJSON(data.responseText);
+    if (resp.status === 422) {
+      $('.csv_error').html(resp.error);
+    }
+    else if (resp.status === 200) {
+      // $('.dataTables_empty').remove();
+      $('#success_data_append').html('');
+      $('#failure_data_append').html('');
+      $("#processed_data").hide();
+      $("#not_processed_data").hide();
+      // $('.dataTables_empty').remove();
+      var offset = 20;
+      var filename = $('#upload-field').val();
+      $('.uploaded_file_name').html(filename);
+      $("#bulk_upload_inprogress").show();
+      $('html, body').animate({
+      scrollTop: $("#bulk_upload_inprogress").offset().top + offset
+      }, 2000);
+      setTimeout(function(){
+      $("#bulk_upload_inprogress").hide();
+      }, 4000);
+      setTimeout(function () {
+      processed = resp.response.processed
+       if(processed.length != 0){
+        $("#processed_data").show();
+      for(i=0;i < processed.length; i++){
+        $('#success_data_append')
+        .append( '<tr class="table-row">'+'<td>'+processed[i].record["first_name"]+'</td>'+'<td>'+ processed[i].record["last_name"]+'</td>'+'<td>'+ processed[i].record["email"] +'</td>'+'<td>'+processed[i].record["mobile_phone"]+'</td>'+'<td>'+processed[i].record["invite_code"]+'</td>'+'<td>'+processed[i].status+'</td>'+'</tr>');
+      }
+    }
+      errors = resp.response.errors
+      if(errors.length != 0){
+      $("#not_processed_data").show();
+      for(i=0;i<errors.length;i++){
+        $('#failure_data_append').append( '<tr class="table-row">'+'<td>'+errors[i].record["first_name"]+'</td>'+'<td>'+ errors[i].record["last_name"]+'</td>'+'<td>'+ errors[i].record["email"] +'</td>'+'<td>'+errors[i].record["phone_number"]+'</td>'+'<td class="text-danger">'+errors[i].error_messages.join("\n")+'</td>'+'</tr>');
+      }
+    }
+     }, 4000);
+      setTimeout(function () {
+     
+      $('#upload-field').val('');
+      $('#upload').val('');
+      }, 4000);
+
+    
+    }
+  });
+
+  $('form#bulk_patient_form').on("ajax:remotipartComplete", function(e, data) {
+    
+    
+    console.log(data);
+    resp = $.parseJSON(data.responseText);
+    if (resp.status === 422) {
+      $('.csv_error').html(resp.error);
+    }
+    else if (resp.status === 200) {
+      $('#success_data_append').html('');
+      $('#failure_data_append').html('');
+      $("#processed_data").hide();
+      $("#not_processed_data").hide();
+      var offset = 20;
+      var filename = $('#upload-patient-field').val();
+      $('.uploaded_file_name').html(filename);
+      $("#bulk_upload_inprogress").show();
+      $('html, body').animate({
+      scrollTop: $("#bulk_upload_inprogress").offset().top + offset
+      }, 2000);
+      setTimeout(function(){
+      $("#bulk_upload_inprogress").hide();
+      }, 4000); 
+      setTimeout(function () {
+        processed = resp.response.processed
+      if(processed.length != 0){
+      $("#processed_data").show();
+      for(i=0;i < processed.length; i++){
+        $('#success_data_append')
+        .append( '<tr class="table-row">'+'<td>'+processed[i].record["first_name"]+'</td>'+'<td>'+ processed[i].record["last_name"]+'</td>'+'<td>'+ processed[i].record["email"] +'</td>'+'<td>'+processed[i].record["mobile_phone"]+'</td>'+'<td>'+processed[i].status+'</td>'+'</tr>');
+      }
+    }
+      errors = resp.response.errors
+      if(errors.length != 0){
+      $("#not_processed_data").show();
+      for(i=0;i<errors.length;i++){
+        $('#failure_data_append').append( '<tr class="table-row">'+'<td>'+errors[i].record["first_name"]+'</td>'+'<td>'+ errors[i].record["last_name"]+'</td>'+'<td>'+ errors[i].record["email"] +'</td>'+'<td>'+errors[i].record["phone_number"]+'</td>'+'<td class="text-danger">'+errors[i].error_messages.join("\n")+'</td>'+'</tr>');
+      }
+    }    
+        }, 4000);
+       setTimeout(function () {
+     
+      $('#upload-patient-field').val('');
+      $('#upload').val('');
+      }, 4000);
+
+    }
+  });
+
+  $('form#bulk_physician_form').on("ajax:remotipartComplete", function(e, data) {
+    resp = $.parseJSON(data.responseText);
+    if (resp.status === 422) {
+      $('.csv_physician_error').html(resp.error);
+    }
+    else if (resp.status === 200) {
+      $('#success_data_append').html('');
+      $('#failure_data_append').html('');
+      $("#processed_data").hide();
+      $("#not_processed_data").hide();
+      // $('.dataTables_empty').remove();
+      var offset = 20;
+      var filename = $('#upload-physician-field').val();
+      $('.uploaded_file_name').html(filename);
+      $("#bulk_upload_inprogress").show();
+      $('html, body').animate({
+      scrollTop: $("#bulk_upload_inprogress").offset().top + offset
+      }, 2000);
+      setTimeout(function(){
+      $("#bulk_upload_inprogress").hide();
+      }, 4000); 
+      setTimeout(function () {
+      processed = resp.response.processed
+      if(processed.length != 0){
+      $("#processed_data").show();
+      for(i=0;i < processed.length; i++){
+        $('#success_data_append')
+        .append( '<tr class="table-row">'+'<td>'+processed[i].record["first_name"]+'</td>'+'<td>'+ processed[i].record["last_name"]+'</td>'+'<td>'+ processed[i].record["email"] +'</td>'+'<td>'+processed[i].record["mobile_phone"]+'</td>'+'<td>'+processed[i].status+'</td>'+'</tr>');
+      }
+    }
+      errors = resp.response.errors
+      if(errors.length != 0){
+      $("#not_processed_data").show();
+      for(i=0;i<errors.length;i++){
+        $('#failure_data_append').append( '<tr class="table-row">'+'<td>'+errors[i].record["first_name"]+'</td>'+'<td>'+ errors[i].record["last_name"]+'</td>'+'<td>'+ errors[i].record["email"] +'</td>'+'<td>'+errors[i].record["phone_number"]+'</td>'+'<td class="text-danger">'+errors[i].error_messages.join("\n")+'</td>'+'</tr>');
+     }
+   }
+   
+   }, 4000);
+      setTimeout(function () {
+     
+      $('#upload-physician-field').val('');
+      $('#upload-csv').val('');
+      }, 4000);
+
+    }
+  });
+
+
+  $('form#physician_performance_form').on("ajax:remotipartComplete", function(e, data) {
+    resp = $.parseJSON(data.responseText);
+    if (resp.status === 422) {
+      $('.csv_error').html(resp.message);
+    }
+    else if (resp.status === 200) {
+      window.location.reload();
+
+    }
+  });
+
+  $("#upload_error").click(function() {
+    $('#bulk_upload_errors').modal('hide');
+    var offset = 20;
+    $('html, body').animate({
+      scrollTop: $(".bulk_error_data").offset().top + offset
+    }, 2000);
+  });
+
+
+  $("#delete_insurance_button").click(function() {
+    $.ajax({
+      url: '/insurance_companies/' + $('#insurance_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#insurance_id_delete').val(),
+        name: $('#insurance_name_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_insurance').modal('hide');
+          $('#insurance_name_delete_error').html(data.message)
+          $('#delete_insurance_error').modal('show');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_staff_button").click(function() {
+    $.ajax({
+      url: '/staffs/' + $('#staff_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#staff_id_delete').val(),
+        name: $('#staff_name_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status == true && data.user_type == "physician_user"){
+          window.location = "/staffs/new"
+        }
+       else if (data.status == true ){
+          window.location.reload();
+        }
+        else{
+          $('#delete_staff').modal('hide');
+          $('#staff_name_delete_error').html(data.message)
+          $('#delete_staff_error').modal('show');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_wellness_service_button").click(function() {
+    $.ajax({
+      url: '/wellness_services/' + $('#wellness_service_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#wellness_service_id_delete').val(),
+        name: $('#wellness_service_name_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status == true && data.user_type == "physician_user"){
+          window.location = "/wellness_services/new"
+        }
+       else if (data.status == true ){
+          window.location.reload();
+        }
+        else{
+          $('#wellness_service_name_delete').html(data.message)
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_question_button").click(function() {
+
+    $.ajax({
+      url: '/specialties/'+$('#specialty_id').val()+'/additional_questionnaires/'+ $('#question_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#question_id_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_insurance').modal('hide');
+          $('#insurance_name_delete_error').html(data.message)
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_speciality_button").click(function() {
+    $.ajax({
+      url: '/specialties/' + $('#specialty_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#specialty_id_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_speciality').modal('hide');
+          $('#specialty_name_delete_error').html(data.message)
+          $('#delete_speciality_error').modal('show');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_event_button").click(function() {
+    $.ajax({
+      url: '/events/' + $('#event_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_event').modal('hide');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+  $("#delete_offer_button").click(function() {
+    $.ajax({
+      url: '/offers/' + $('#offer_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_offer').modal('hide');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_article_button").click(function() {
+    $.ajax({
+      url: '/articles/' + $('#article_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_article').modal('hide');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_survey_button").click(function() {
+    $.ajax({
+      url: '/surveys/' + $('#survey_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_survey').modal('hide');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_sub_speciality_button").click(function() {
+    $.ajax({
+      url: '/sub_specialties/' + $('#delete_sub_specialty_id').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#delete_sub_specialty_id').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_sub_speciality').modal('hide');
+          $('#sub_specialty_delete_error').html(data.message)
+          $('#delete_sub_speciality_error').modal('show');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+
+  $("#delete_resource_button").click(function() {
+    $.ajax({
+      url: '/resources/' + $('#resource_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#resource_id_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#delete_resource').modal('hide');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#delete_family_member_button").click(function() {
+    $.ajax({
+      url: '/family_members/' + $('#family_member_id_delete').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#family_member_id_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        window.location = "/family_members"
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#resend_family_member_button").click(function() {
+    $.ajax({
+      url: '/family_members/resend_invite',
+      type: 'GET',
+      data: {
+        family_member_id: $('#family_member_id_resend').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        window.location = "/family_members"
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#activate_deactivate_reinvite_physician_button").click(function() {
+    $.ajax({
+      url: '/admins/activate_deactivate_reinvite_user/?' + $('#physician_id').val(),
+      type: 'PUT',
+      data: {
+        id: $('#physician_id').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      beforeSend: function() {
+        return $('#activate_deactivate_reinvite_physician_button').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#activate_deactivate_reinvite_physician').modal('hide');
+          $('#archive_delete_error').html(data.message)
+          $('#achive_physician_error').modal('show');
+        }
+      },
+      complete: function() {
+        $('#activate_deactivate_reinvite_physician').modal('hide');
+        return $('#activate_deactivate_reinvite_physician_button').prop('disabled', false).text('Yes');
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#remove_staff_button").click(function() {
+    $.ajax({
+      url: '/staffs/' + $('#staff_id').val(),
+      type: 'DELETE',
+      data: {
+        id: $('#staff_id').val(),
+        calling_action: 'remove_staff',
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#remove_staff').modal('hide');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#activate_deactivate_reinvite_patient_button").click(function() {
+  $.ajax({
+   url: '/admins/activate_deactivate_reinvite_user/?' + $('#patient_id').val(),
+   type: 'PUT',
+     data: {
+       id: $('#patient_id').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+
+        }
+       else{
+         $('#activate_deactivate_reinvite_patient').modal('hide');
+     }
+    },
+    error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#activate_deactivate_registered_physician_button").click(function() {
+    $.ajax({
+      url: '/admins/activate_deactivate_physician/?' + $('#physician_id').val(),
+      type: 'PUT',
+      data: {
+        id: $('#physician_id').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#activate_deactivate_registered_physician').modal('hide');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+
+$("#activate_family_no_button").click(function() {
+  window.location.reload();
+});
+
+
+  $("#resend_approval").click(function() {
+    user_id = $('#user_id').val();
+    $.ajax({
+      url: '/physicians/'+user_id+'/resend_approval',
+      type: 'GET',
+      data: {
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+       else{
+         $('#reinvite_patient').modal('hide');
+     }
+    },
+    error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#deactivate_user_button").click(function() {
+    $.ajax({
+      url: '/admins/deactivate_user/?' + $('#user_id').val(),
+      type: 'PUT',
+      data: {
+        id: $('#user_id').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      beforeSend: function() {
+        return $('#deactivate_user_button').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#deactivate_user').modal('hide');
+          $('#archive_delete_error').html(data.message)
+          $('#achive_physician_error').modal('show');
+        }
+      },
+      complete: function() {
+        $('#deactivate_user_button').modal('hide');
+        return $('#deactivate_user_button').prop('disabled', false).text('Yes');
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+   $("#resend_activation_link").click(function() {
+     user_id = $('#patient_user_id').val();
+    $.ajax({
+      url:  '/patients/'+user_id+'/resend_activation_link',
+      type: 'GET',
+      data: {
+        id: user_id,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#activation_popup').modal('hide');
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+
+  $("#activate_user_button").click(function() {
+    $.ajax({
+      url: '/admins/activate_user/?' + $('#archive_user_id').val(),
+      type: 'PUT',
+      data: {
+        id: $('#archive_user_id').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      beforeSend: function() {
+        return $('#activate_user_button').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('#activate_user').modal('hide');
+          $('#archive_delete_error').html(data.message)
+          $('#achive_physician_error').modal('show');
+        }
+      },
+      complete: function() {
+        $('#activate_user_button').modal('hide');
+        return $('#activate_user_button').prop('disabled', false).text('Yes');
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+
+    $("#resend_staff_invite_button").click(function() {
+      staff_id = $('#staff_id').val();
+    $.ajax({
+      url: '/staffs/'+staff_id+'/resend_invite',
+      type: 'GET',
+      data: {
+        id: $('#staff_id').val(),
+        name: $('#staff_name').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          toastr.success('successfully created')
+        }
+      },
+      error: function(data) {}
+    }); // end of ajax function
+  });
+
+    $("#resend_invite").click(function() {
+      invitation_id = $('#invitation_id').val();
+    $.ajax({
+      url: '/invitations/'+invitation_id+'/resend_invite',
+      type: 'GET',
+      data: {
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+       else{
+         $('#reinvite_patient').modal('hide');
+     }
+    },
+    error: function(data) {}
+    }); // end of ajax function
+  });
+
+  $("#resend_invite_salesman").click(function() {
+    salesman_id = $('#invitation_id').val();
+  $.ajax({
+    url: '/salesmen/'+salesman_id+'/resend_invite',
+    type: 'GET',
+    data: {
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      if (data.status){
+        window.location.reload();
+      }
+     else{
+       $('#reinvite_patient').modal('hide');
+   }
+  },
+  error: function(data) {}
+  }); // end of ajax function
+});
+
+  $(window).on("resize", function () {
+    if ( $(window).width() < 737) {
+      $(".take_tour").show();
+    }
+    else {
+      $(".take_tour").hide();
+    }
+  }).resize(); // end of resize function
+
+
+  $("#search_upcoming_appointments").click(function() {
+    window.location = "/physicians/appointments?appointment_search_query="+$("#appointment_search").val();
+  });
+
+  $("#delete_appointment").click(function() {
+    $.ajax({
+      url: '/physicians/delete_appointment',
+      type: 'DELETE',
+      data: {
+        id: $('#appointment_id').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+       else{
+        window.location.reload();
+     }
+    },
+    error: function(data) {}
+    });
+  }); // end of delete appointment function
+
+  $("#delete_coupon_button").click(function() {
+    $.ajax({
+      url: '/msa_regions/delete_coupon_code',
+      type: 'DELETE',
+      data: {
+        id: $('#coupon_id_delete').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status==true){
+          window.location.reload();
+        }
+       else{
+        window.location.reload();
+     }
+    },
+    error: function(data) {}
+    });
+  }); // end of delete appointment function
+
+
+  $(".close_plan_popup,.subscription_cancel").click(function() {
+    window.location.reload();
+  });
+
+
+
+  $("#check_password_button").click(function() {
+    if (document.getElementById('user_password_check').value == "") {
+      $('.user_password_error').text("Enter Password")
+    }
+    else{
+      $.ajax({
+        url: '/physicians/history_password_protect',
+        type: 'GET',
+        data: {
+          user_password: document.getElementById('user_password_check').value,
+          appointment_id: document.getElementById('password_appointment_id').value,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+          if (data.status){
+           $('#check_user_password').modal('hide');
+           pdf_url = "/physicians/export_patient_detail_pdf.pdf?detail=history&id="+data.appointment_id
+           csv_url = "/physicians/export_patient_detail_csv.csv?detail=history&id="+data.appointment_id
+           $('#history_download_option_message').html("<a href="+pdf_url+">PDF</a></br><a href="+csv_url+">CSV</a>");
+           $('#history_download_option_modal').modal('show');
+         }
+           else {
+            $(".user_password_error").html("");
+            $(".user_password_error").append("Incorrect Password");
+            }
+        },
+        error: function(data) {}
+      }); // end of ajax function
+    }
+  });
+
+
+   $("#appointment_ready_submit").click(function() {
+    var question =  $("#appointment_question").val();
+    var apt_patient = $("#apt_patient").val();
+    var physician = $('#region_physician_list').val();
+    var service_id = $('#wellness_service_id').val();
+    if (!physician) {
+      $('.schedule_physician_error').html("");
+      $('.schedule_physician_error').text("Please Select ")
+    } else if (physician_user_schedules.length == 0) {
+      $('.appointment_error_message').html("");
+      $(".appointment_error_message").append("Select an appointment window to book.")
+      $('#appointment_select').modal('show');
+    } else if (!question) {
+      $('.appointment_error_message').html("");
+      $(".appointment_error_message").append("Please describe the nature of the visit.")
+      $('#appointment_select').modal('show');
+    } else if (!service_id) {
+      $('.appointment_error_message').html("");
+      $(".appointment_error_message").append("Please select the service for the visit.")
+      $('#appointment_select').modal('show');
+    } else{
+      physician_user_schedules[0]["question"] = $("#appointment_question").val();
+      additional_questions["Please describe the nature of your visit"]= physician_user_schedules[0]["question"]
+      if ($("#additional_questions").val()!= 0){
+        questions_count = $("#additional_questions").val();
+        var i;
+        for (i = 0; i < questions_count; i++) {
+          if($("#appointment_answer"+i).is(':checkbox') && ($("#appointment_answer"+i).prop('checked') == true)){
+            additional_questions[$("#appointment_question"+i).text()]= "Y"
+          } else if($("#appointment_answer"+i).is(':checkbox') && ($("#appointment_answer"+i).prop('checked') == false)){
+            additional_questions[$("#appointment_question"+i).text()]= "N"
+          } else{
+            additional_questions[$("#appointment_question"+i).text()]= $("#appointment_answer"+i).val()
+          }
+        }
+        additional_questions
+      }
+      
+      physician_user_schedules[0]["apt_patient_id"] = $("#apt_patient").val();
+      $.ajax({
+        url: '/patients/create_patient_appointment',
+        type: 'POST',
+        data: {
+          patient_info_id: physician_user_schedules[0]["patient_id"],
+          physician_info_id:physician_user_schedules[0]["physician_id"],
+          time_slot_id:physician_user_schedules[0]["time_slot_id"],
+          scheduled_date:physician_user_schedules[0]["schedule_date"],
+          apt_patient_id:physician_user_schedules[0]["apt_patient_id"],
+          questions:additional_questions,
+          wellness_service_id:service_id,
+          authenticity_token: $('meta[name=csrf-token]').attr('content')
+        },
+        success: function(data) {
+          if(data.success == false && data.errors.length!=0){
+            appointment_errors = data.errors;
+            for(i=0; i< data.errors.length; i++){
+              $('.schedule_error_app').html("");
+              $(".appoint_confirm_message").html("");
+              $('.schedule_physician_error').html("");
+              $(".appoint_confirm_message").append(appointment_errors[i]);
+              $('#appointment_confirm').modal('show');
+            }
+          }
+          else if(data.success==true ){
+            $('.schedule_error_app').html("");
+            $(".appoint_confirm_message").html("");
+            $('.schedule_physician_error').html("");
+            $(".appoint_confirm_message").append("You have successfully reserved an AccessElite consultation for  "+data.patient_name+" with "+data.physician_name+" at "+data.slot+" on "+data.appointment_date+" ");
+            $('#appointment_confirm').modal('show');
+            additional_questions ={}
+          }
+        },
+        error: function(data) {}
+      }); // end of ajax function
+    }
+  });
+
+
+  $(".appointment_confirm_submit").click(function() {
+    $('#appointment_confirm').modal('hide');
+    var physician_id = $('#region_physician_list').val();
+    update_schedule_time_slot(physician_id);
+  });
+    
+   $(".appointment_errors_submit").click(function() {
+    $('#appointment_select').modal('hide');
+    })
+
+
+  var region_value = '';
+
+  $("#region_search").click(function() {
+    if (window.location.search.substring(1,3)== "id"){
+      var refer_code = window.location.search.substring(1).split('id=').pop()
+    }
+    if (window.location.search.substring(1,14) == "referral_code"){
+      var refer_code = window.location.search.substring(1).split('referral_code=').pop()
+    }
+    if(window.location.search.substring(17,40) == "physician_invitation_id"){
+      var invitation_id = window.location.search.substring(17).split('physician_invitation_id=').pop()
+    }
+    if(window.location.search.substring(1,11) == "patient_id"){
+      url = new URL(window.location.href)
+      var patient_id = url.searchParams.get("patient_id").split('--').pop()
+    }
+    if (document.getElementById('region').value == "") {
+      $('.region_error').text("Please Select Region")
+    }
+    else{
+      region_value= $("#region").val();
+      $.ajax({
+        url: '/msa_regions/active_payment_phase',
+        type: 'GET',
+        data: {
+          id: region_value,
+          refer_code: refer_code,
+          invitation_id: invitation_id,
+          patient_id: patient_id
+        },
+        success: function(data) {
+          if (data.phase_name == "Live") {
+            if (data.referal_code !="" && data.referal_code != null){
+              if ( window.location.search.substring(1,14) == "referral_code"){
+                window.location = "/sign_up?referral_code="+data.referal_code+"&region_id="+data.region_id
+              }
+              else if ( window.location.search.substring(1,11) == "refer_code"){
+                window.location = "/sign_up?refer_code="+data.referal_code+"&region_id="+data.region_id
+              }
+              else{
+                window.location = "/sign_up?invitation_id="+data.referal_code+"&region_id="+data.region_id
+              }
+            }
+            else if (window.location.search.substring(1,12) == "signup_from") {
+              // window.location = "/sign_up?region_id="+data.region_id
+              window.location = "/sign_up?region_id="+data.region_id
+            }
+            else if(window.location.search.substring(1,11) == "patient_id"){
+              window.location = "/sign_up?patient_id="+data.invitation_id
+            }
+            else{
+              // window.location = "/sign_up?region_id="+data.region_id
+              window.location = "/msa_regions/search_region_and_team?region_id="+data.region_id
+            }
+            $('.region_name').text(data.region_name);
+            $('#patient_msa_region').val(data.region_id);
+          }
+          else if (data.phase_name == "Non-Live"){
+            if (data.referal_code !="" && data.referal_code != null){
+              if (data.referal_code !="" && data.referal_code != null && window.location.search.substring(1,14) == "referral_code"){
+                window.location = "/sign_up?referral_code="+data.referal_code+"&region_id="+data.region_id
+              }
+              else{
+                // window.location = "/sign_up?region_id="+data.region_id
+                window.location = "/sign_up?invitation_id="+data.referal_code+"&region_id="+data.region_id
+              }
+            }
+            else{
+              window.location = "/sign_up?region_id="+data.region_id
+            }
+              $('.region_name').text(data.region_name);
+              $('#patient_msa_region').val(data.region_id);
+          }
+        },
+        error: function(data) {
+        }
+      }); // end of ajax function
+    }
+  });
+
+  $(".spouse_btn").change(function() {
+    $("#primary_family_email").removeAttr("readonly");
+    $("#family_phone_number").removeAttr("readonly");
+    $("#primary_family_email").val('')
+      $("#family_phone_number").val('')
+  });
+
+
+  $(".child_btn").click(function(){
+    $.ajax({
+      url: '/family_members/check_family_type',
+      type: 'POST',
+      data: {
+        family_type: "child"
+      },
+      success: function(data) {
+        $("#primary_family_email").val(data.email)
+        document.getElementById("primary_family_email").setAttribute("readonly", true);
+        document.getElementById("family_phone_number").setAttribute("readonly", true);
+        $(".family_mobile_number").mask("999-999-9999")
+        $("#family_phone_number").val(data.phone_number)
+      }
+  });
+  });
+
+   $("#create_patient_appointment_btn").click(function(){
+    if (physician_user_schedules.length == 0) {
+       $('.schedule_error').text("Select an availability timing to book")
+     }
+     else{
+      $('.schedule_error').html(' ');
+      $('#additional_ques').modal('show');
+     }
+  });
+
+   $(".additional_ques_submit").click(function(){
+    var question =  $("#appointment_question").val();
+    if (!question) {
+       $('.schedule_error').text("Please describe the nature of your visit")
+     }
+     else{
+      physician_user_schedules[0]["question"] = $("#appointment_question").val();
+       $('#additional_ques').modal('hide');
+       $('#appointment_ready').modal('show');
+     }
+  });
+
+     $("#update_schedule_button").click(function() {
+     schedule_list = schedules
+     unique_schedules = schedule_list
+     schedules_count = physician_schedule_count
+     var physician_redirect = $("#user_redirect").val();
+     if (unique_schedules.length == 0 && schedules_count == true) {
+       $('.schedule_error').text("Please select slots")
+     }
+     else{
+     $.ajax({
+       url: '/physicians/update_physician_schedule',
+       type: 'POST',
+       data: {
+         physician_schedules: unique_schedules,
+         schedule_length: unique_schedules.length,
+         user_rediect: physician_redirect,
+         physician_user_id: user_id,
+         authenticity_token: $('meta[name=csrf-token]').attr('content')
+
+       },
+       beforeSend: function() {
+            return $('#update_schedule_button').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+          },
+       success: function(data) {
+         if (data.success == true && window.location.search.substring(1,9) == "redirect" && data.onboarded==true && data.user=="physician")
+         {
+           window.location = "/staffs/new?redirect="+false
+         }
+         else if (data.success == true && window.location.search.substring(1,9) == "redirect" && data.onboarded==true && data.user=="staff")
+         {
+           window.location = "/staffs/account"
+         }
+         else
+         {
+           window.location.reload();
+         }
+       },
+       complete: function() {
+            return $('#update_schedule_button').prop('disabled', false).text('Save');
+      }
+     });
+     }
+    });
+
+    $("#individual_sign_up_form").click(function() {
+    if($("#individual-monthly").length > 0){
+      var plan_type = $("#individual-monthly").val();
+    }
+    else if ($("#individual-yearly").length > 0){
+      var plan_type = $("#individual-yearly").val();
+    }
+    else{
+      var plan_type = $('input:radio[name=invidiual]:checked').val();
+    }
+    if (($('input:radio[name=invidiual]').length >0) && plan_type == null) {
+      $('.region_plan_error').text("Please Select Plan")
+    }
+    else{
+    $("#payment_plan_type").val(plan_type);
+    $("#page1,#page2,#page3").hide();
+    $("#page4,#page5").show();
+    if($('#coupon_applied').val()=="true"){
+       $("#page7").show();
+     }
+    else{
+      $("#page6").show();
+    }
+    $(".card_number,.exp_month,.exp_year,.security_code, .holder_name").prop('required',true);
+    $("#free_signup_title").hide();
+    if (window.location.search.substring(1,14) != "invitation_id" && window.location.search.substring(1,11) != "refer_code" && window.location.search.substring(1,14) != "referral_code") {
+      if (window.location.search.indexOf('region_id') > -1) {
+        region_id = window.location.search.substring(1).split('region_id=').pop();
+      }
+    }
+    if($('#coupon_applied').val()=="true"){
+      set_coupon_promotion_details(plan_type,region_id);
+  }
+  else{
+     set_sign_up_promotion_details(plan_type,region_id);
+  }
+  }
+  });
+
+
+    $("#family_sign_up_form").click(function() {
+      if($("#family-monthly").length > 0){
+        var plan_type = $("#family-monthly").val();
+      }
+      else if ($("#family-yearly").length > 0){
+        var plan_type = $("#family-yearly").val();
+      }
+      else{
+      var plan_type = $('input:radio[name=family]:checked').val();
+    }
+      if (($('input:radio[name=family]').length >0) && plan_type == null) {
+        $('.region_plan_error').text("Please Select Plan")
+      }
+      else{
+      $("#payment_plan_type").val(plan_type);
+      $("#page1,#page2,#page3").hide();
+      $("#page4,#page5").show();
+      if($('#coupon_applied').val()=="true"){
+         $("#page7").show();
+       }
+      else{
+        $("#page6").show();
+      }
+      $(".card_number,.exp_month,.exp_year,.security_code, .holder_name").prop('required',true);
+      $("#free_signup_title").hide();
+      if (window.location.search.substring(1,14) != "invitation_id" && window.location.search.substring(1,11) != "refer_code" && window.location.search.substring(1,14) != "referral_code") {
+        if(window.location.search.indexOf('region_id') > -1) {
+          region_id = window.location.search.substring(1).split('region_id=').pop();
+        }
+      }
+      if($('#coupon_applied').val()=="true"){
+        set_coupon_promotion_details(plan_type,region_id);
+    }
+    else{
+       set_sign_up_promotion_details(plan_type,region_id);
+    }
+    }
+      });
+
+    $("#free_trial").click(function() {
+      $("#page1,#page2,#page3,#page5").hide();
+      $("#page4").show();
+      });
+
+    $("#try_for_free").click(function() {
+      $("#page1,#page2,#page3,#page5").hide();
+      $(".card_number").val('');
+      $(".card_number,.exp_month,.exp_year,.security_code, .holder_name").prop('required',false);
+      $("#page4").show();
+    });
+
+    $("#physician_specialty_list").change(function() {
+   $.ajax({
+     url: '/physicians/check_specialty_list',
+     type: 'GET',
+     data: {specialty_id: this.value},
+     success: function(data) {
+       $('#physician_sub_specialty_list').html('');
+       if (data.sub_specialties.length == 0)
+       {
+         $( ".subspecialty_block" ).hide();
+       }
+       else
+       {
+
+        $( ".subspecialty_block" ).show();
+        $('#physician_sub_specialty_list').append($('<option/>', {
+            value: "",
+            text : "None"
+          }));
+         data.sub_specialties.forEach(function(sub_specialty){
+           $('#physician_sub_specialty_list').append($('<option/>', {
+             value: sub_specialty.id,
+             text : sub_specialty.name
+           }));
+         });
+       }
+     }
+   });
+ });
+
+
+  $("#region_physician_list").change(function() {
+    $('.schedule_error_app').html("");
+    var question =  $("#appointment_question").val();
+    var region = $('#region_list').val();
+    var physician = $('#region_physician_list').val();
+    if (!region) {
+       $('.schedule_error').text("Please select the region")
+     }
+     if (!physician) {
+        $("#doctor-schedule1").hide();
+       $("#doctor-schedule2").hide();
+     }
+     else{
+    var physician_id = this.value
+    setTimeout(function(){
+    $("#doctor-schedule1").show();
+    $("#doctor-schedule2").show();
+      }, 350);
+    
+    update_schedule_time_slot(physician_id);
+  }
+ }); 
+
+
+ $('#is_residency').on('change', function(){
+   var residency=$('#physician_internship').val();
+   if($("#is_residency").is(':checked')){
+   $('#physician_residency').val(residency);
+ }
+ else{
+   $('#physician_residency').val('');
+ }
+
+ });
+
+ $('#coupon_plan_type').on('change', function(){
+  var plan_type = $(this).val();
+  if(plan_type=="individual_monthly_membership" || plan_type =="family_monthly_membership"){
+    if (!$("#duration option[value='repeating']").length > 0){
+    $("#duration").append("<option value='repeating'>" + "Mutli-month"+ "</option>");
+  }
+}
+ else if (plan_type=="individual_yearly_membership" || plan_type =="family_yearly_membership"){
+   $("#duration option[value='repeating']").remove();
+   $("#duration_month").hide();
+ }
+ });
+
+ $('#duration').on('change', function(){
+  var duration = $(this).val();
+  if(duration=="repeating"){
+    $("#duration_month").show();
+  }
+ else if (duration=="once" || duration=="forever" ){
+   $("#duration_month").hide();
+ }
+ });
+
+
+
+
+
+$('#is_fellowship').on('change', function(){
+   var fellowship=$('#physician_residency').val();
+   if($("#is_fellowship").is(':checked')){
+   $('#physician_fellowship').val(fellowship);
+ }
+ else{
+   $('#physician_fellowship').val('');
+ }
+ });
+
+ $("#update_staff_email_button").click(function() {
+   var confirm_email_address= $("#staff_confirm_email").val();
+   var account_email = $("#user_email").val();
+   if (document.getElementById('staff_confirm_email').value== "") {
+     $('.staff_confirm_email_error').text("Enter email")
+   }
+   else if (confirm_email_address !== account_email){
+      $('.staff_confirm_email_error').text("New email and Confirmed email doesn't match.")
+    }
+   else{
+   $.ajax({
+     url: '/staffs/update_staff_confirm_email',
+     type: 'POST',
+     data: {
+       user_email: document.getElementById('staff_confirm_email').value,
+       authenticity_token: $('meta[name=csrf-token]').attr('content')
+     },
+   success: function(data) {
+     if(data.success == true){
+       $('#confirm_staff_email').modal('hide');
+       $('#update_email_success').modal('show');
+       $('.physician-schedule-error').append(data.user_email);
+      }
+     else if (data.success == false && data.physician_email == "available"){
+       $('#confirm_staff_email').modal('hide');
+       $('#existing_email_modal').modal('show');
+     }
+ },
+ error: function(data) {}
+ }); // end of ajax function
+ }
+ });
+
+ $(".cancel_onboard_button").click(function() {
+   window.location.reload();
+ });
+
+ $("#schedule_button").click(function() {
+ active_slot = $('.slots_sel ul li').hasClass('active')
+ schedule_list = schedules
+ if (not_onboarded_schedules.length == 0){
+   not_onboarded_list = schedules
+ }
+ else{
+  not_onboarded_list = not_onboarded_schedules
+ }
+ slots_changed = slots
+ unique_schedules = schedule_list
+ schedules_count = physician_schedule_count
+ var physician_redirect = $("#user_redirect").val();
+ var registered = $("#registered").val();
+ var user_id;
+if (window.location.search.substring(1, 18) === "physician_user_id") {
+   user_id = $("#physician_user_id").val();
+  }
+ if ((unique_schedules.length == 0 && schedules_count == true) || !active_slot) {
+   $('.schedule_error').text("Please select slots")
+ }
+ else{
+ $.ajax({
+   url: '/physicians/update_physician_schedule',
+   type: 'POST',
+   data: {
+     physician_schedules: unique_schedules,
+     schedule_length: unique_schedules.length,
+     user_rediect: physician_redirect,
+     physician_user_id: user_id,
+     registered: registered,
+     slots_changed: slots,
+     not_onboarded_list: not_onboarded_list,
+     not_onboarded_length: not_onboarded_list.length,
+     authenticity_token: $('meta[name=csrf-token]').attr('content')
+
+   },
+   beforeSend: function() {
+        return $('#schedule_button').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      },
+   success: function(data) {
+
+     if (data.success == true && window.location.search.substring(1,9) == "redirect" && data.onboarded==true && data.user=="physician" && data.schedules_count!=0)
+      {
+        window.location = "/staffs/new?redirect="+false
+      }
+     else if (data.success == true && window.location.search.substring(1,9) == "redirect" && data.onboarded==true && data.user=="staff" && data.schedules_count!=0)
+
+      {
+
+       window.location = "/staffs/account"
+     }
+     else{
+     window.location.reload();
+   }
+   },
+   complete: function() {
+    if($('#schedule_save_btn').val()!="false"){
+      return $('#schedule_button').prop('disabled', false).text('Save and Continue');
+    }else{
+      return $('#schedule_button').prop('disabled', false).text('Save');
+    }
+   }
+ });
+ }
+});
+
+if (window.location.href.indexOf("physician_agreement") > -1 && window.location.search.substring(1,9) != "redirect") {
+  $(".submenu").show();
+  $("#sub0").addClass('active');
+  $("#setting_tab").addClass('insurence-nav__item--active');
+}
+else if (window.location.href.indexOf("account_details") > -1 && window.location.search.substring(1,9) != "redirect") {
+  $(".submenu").show();
+  $("#sub1").addClass('active');
+  $("#setting_tab").addClass('insurence-nav__item--active');
+}
+else if (window.location.href.indexOf("etraining") > -1 && window.location.search.substring(1,9) != "redirect") {
+  $(".submenu").show();
+  $("#sub2").addClass('active');
+  $("#setting_tab").addClass('insurence-nav__item--active');
+}
+else if (window.location.href.indexOf("physician_schedules") > -1 && window.location.search.substring(1,9) != "redirect") {
+  $(".submenu").show();
+  $("#sub3").addClass('active');
+  $("#setting_tab").addClass('insurence-nav__item--active');
+}
+else if (window.location.href.indexOf("staffs") > -1 && window.location.search.substring(1,9) != "redirect" && window.location.pathname != "/staffs/account") {
+  $(".submenu").show();
+  $("#sub4").addClass('active');
+  $("#setting_tab").addClass('insurence-nav__item--active');
+}
+
+
+$("#update_user_email_button").click(function() {
+  var confirm_email_address= $("#physician_confirm_email").val();
+  var account_email = $("#account_email").val();
+  if (document.getElementById('physician_confirm_email').value== "") {
+    $('.confirm_email_error').text("Enter email")
+  }
+  else if (confirm_email_address !== account_email){
+     $('.confirm_email_error').text("New email and Confirmed email doesn't match.")
+   }
+  else{
+  $.ajax({
+    url: '/physicians/update_confirm_email',
+    type: 'POST',
+    data: {
+      user_email: document.getElementById('physician_confirm_email').value,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+  success: function(data) {
+    if(data.success == true){
+      $('#confirm_email').modal('hide');
+      $('#update_email_success').modal('show');
+      $('.physician-schedule-error').append(data.user_email);
+     }
+    else if (data.success == false && data.physician_email == "available"){
+      $('#confirm_email').modal('hide');
+      $('#existing_email_modal').modal('show');
+    }
+},
+error: function(data) {}
+}); // end of ajax function
+}
+});
+
+$('#admin_validate_promo_code').on('click', function() {
+  var coupon_id, coupon_plan_name;
+  coupon_id = $('#apply_promo_code').val();
+  coupon_plan_name = $('#payment_plan').val();
+  if ($("#patient_msa_region").val() === '') {
+    $('.promo_code_error_message').text('Please select region.');
+  }
+  else if ($("#payment_plan").val() === '') {
+    $('.promo_code_error_message').text('Please select plan.');
+  }
+  else if (coupon_id === '') {
+    $('.promo_code_error_message').text('Please enter the promo code.');
+  }
+  else {
+    $.ajax({
+      url: '/patients/fetch_and_validate_stripe_coupon',
+      type: 'GET',
+      data: {
+        promo_code_id: coupon_id,
+        plan_name: document.getElementById('payment_plan').value,
+        region: document.getElementById('patient_msa_region').value,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      beforeSend: function() {
+        $('#admin_validate_promo_code').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      },
+      error: function(data) {
+        console.log("ajax request error !");
+      },
+      success: function(data) {
+        if (data.success) {
+          var discount_price, full_price, plan_type;
+          if (data.coupon.percent_off === null) {
+            if ((data.coupon.amount_off / 100) > full_price) {
+              discount_price = full_price;
+            }
+            else {
+              discount_price = full_price - (data.coupon.amount_off / 100);
+            }
+          }
+          else {
+            discount_price = full_price - full_price * (data.coupon.percent_off / 100.0);
+          }
+          $("#coupon_admin_plan_type").html(data.coupon.coupon_plan_type);
+          $("#coupon_admin_plan_duration").html(data.coupon.plan_duration);
+          $("#coupon_admin_plan_amount").html(data.coupon.amount);
+          $("#coupon_admin_plan_total").html(data.coupon.discount_amount);
+          $("#coupon_admin_promotion_plan_amount").html(data.coupon.total);
+          $("#display_admin_coupon_plan_type").html(data.coupon.discount_amount);
+          $("#coupon_subscription_date").html(data.coupon.end_date);
+          $("#coupon_duration_type").html(data.duration_type);
+          $("#plan_details_section").hide();
+          $("#coupon_plan_details_section").show();
+          $('.promo_code_error_message').text('Coupon applied successfully');
+          $('#discount_coupon_id').val(coupon_id);
+        }
+        else {
+          $("#coupon_plan_details_section").hide();
+          $('.promo_code_error_message').text(data.error);
+        }
+      },
+      complete: function() {
+        $('#admin_validate_promo_code').prop('disabled', false).text('APPLY');
+      }
+    });
+  }
+});
+
+$('#patient_validate_promo_code').on('click', function() {
+  var coupon_id, coupon_plan_name,discount_amount;
+  coupon_id = $('#subscription_promo_code').val();
+  if (coupon_id === '') {
+    $('.promo_code_error_message').text('Please enter the promo code.');
+  }
+  else{
+    $.ajax({
+      url: '/patients/fetch_and_validate_stripe_coupon',
+      type: 'GET',
+      data: {
+        promo_code_id: coupon_id,
+        plan_name: $('.payment_plan').val(),
+        region: $('#region_id').val(),
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      beforeSend: function() {
+        $('#patient_validate_promo_code').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+      },
+      error: function(data) {
+        console.log("ajax request error !");
+      },
+      success: function(data) {
+        if (data.success) {
+          var year_pattern = /[,$]|\/|Y|r| |/g;
+          var month_pattern = /[,$]|\/|M|o| |/g;
+          var discount_price, full_price, plan_type;
+          total_money = parseFloat($('.total_next_bill').text().replace(year_pattern, "").replace(month_pattern, "").match(/^-?[0-9]\d*(\.\d+)?$/)[0], 10);
+          if (data.coupon.percent_off === null) {
+            if ((data.coupon.amount_off / 100) > full_price) {
+              discount_price = full_price;
+            }
+            else {
+              discount_price = full_price - (data.coupon.amount_off / 100);
+            }
+          }
+          else {
+            discount_price = full_price - full_price * (data.coupon.percent_off / 100);
+          }
+          $('.edit_coupon_code').show();
+          $('.discount_applied').text('$'+ data.coupon.discount_total);
+          $('.promo_code_error_message').text('Coupon applied successfully');
+          $('.discount_coupon_id').val(coupon_id);
+          $('.total_amount_before_coupon').val(total_money);
+          $('.total_next_bill').text('$ '+(total_money- data.coupon.discount_total).formatMoney(0,'.',','))
+          $("#subscription_promo_code").prop('disabled',true);
+          $("#stripe_error_message").html('');
+        }
+        else {
+          $('.promo_code_error_message').text(data.error);
+          $("#patient_validate_promo_code").prop('disabled',false);
+          $("#stripe_error_message").html('');
+        }
+      },
+      complete: function() {
+        $('#patient_validate_promo_code').text('APPLY');
+      }
+    });
+  }
+  
+});
+
+$("#email_success_button").click(function() {
+  var user_role= $("#current_user_role").val();
+  $.ajax({
+    url: '/physicians/reset_user',
+    type: 'POST',
+    data: {
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      if(user_role=="patient"){
+       window.location="/patient_login"
+      }
+    else{
+      window.location="/physician_login"
+    }
+    },
+    error: function(data) {}
+  });
+    //do stuff
+});
+
+$(".user_forgot").click(function() {
+  window.localStorage.removeItem("login-email");
+  var password = $('#login-email').val();
+  localStorage.setItem('login-email', password);
+  });
+
+  $(".cancel_resource_button").click(function() {
+        window.location.reload();
+  });
+
+  $(".discount_close").click(function() {
+    var year_pattern = /[,$]|\/|Y|r| |/g;
+    var month_pattern = /[,$]|\/|M|o| |/g;
+    var total_money = parseFloat($('.total_next_bill').text().replace(year_pattern, "").replace(month_pattern, "").match(/^-?[0-9]\d*(\.\d+)?$/)[0], 10);
+    $('.total_next_bill').text('$ '+($('.total_amount_before_coupon').val()))
+    $('.discount_coupon_id').val('');
+    $('#subscription_promo_code').val('');
+    $('.discount_applied').val('');
+    $('.promo_code_error_message').html('');
+    $('.edit_coupon_code').hide();
+    $('#patient_validate_promo_code').prop('disabled', false);
+    $("#subscription_promo_code").prop('disabled',false);
+    });
+
+if (window.location.href.indexOf("login_path") > -1){
+  var user_email = localStorage.getItem('login-email')
+  $("#forgot_password_email").val(user_email);
+  window.localStorage.removeItem("login-email");
+ }
+
+});
+
+var schedules = [];
+
+function createSchedule(that,timeslot_id,weekday_id){
+ var user_id;
+ if (window.location.search.substring(1, 18) === "physician_user_id") {
+    user_id = window.location.search.substring(1).split('physician_user_id=').pop();
+   }
+  var is_available
+  $.ajax({
+    url: '/physicians/check_appointment_exist',
+    type: 'GET',
+    data: {
+      timeslot: timeslot_id,
+      weekday: weekday_id,
+      physician_user_id: user_id,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      if (data.status == true ) {
+        var schedule_slot = $(that).closest('li')
+        if (schedule_slot.hasClass('active') != true){
+            schedule_slot.addClass('active')
+            is_available=false
+            }
+       else if (schedule_slot.hasClass('active') == true){
+               schedule_slot.removeClass('active')
+               is_available=true
+            }
+            schedules.push({time_slot_id:timeslot_id,week_day_id:weekday_id,is_schedule_available: is_available});
+            not_onboarded_schedules.push({time_slot_id:timeslot_id,week_day_id:weekday_id,is_schedule_available: is_available});
+          }
+      else if (data.status == false ){
+         $('#physician_schedule_modal').modal('show');
+      }
+    },
+    error: function(data) {}
+  });
+
+}
+
+function myFunction(event, file_name){
+  var report_name = event.className.split("_")
+  var pdf_name = parseInt(report_name[report_name.length-1])
+  $(".pricing_report_pdf_"+pdf_name).dialog({
+      title: file_name,
+      modal: true,
+      height: 750,
+      open: function () {
+        
+      }
+  });
+  
+}
+
+var patient_appointment_slot
+function createAppointment(that,time_slot_id,schedule_date,physician_id,patient_id,slot_available){
+  patient_appointment_slot = that
+  $("li").each(function() {
+    if ($(this).hasClass("active-slot")) {
+      $(this).removeClass("active-slot")
+      $(this).addClass("active")
+      }
+  });
+   if(slot_available == "true"){
+    var physician_schedule_slot = $(that).closest('li')
+    if (physician_schedule_slot.hasClass('active') == true){
+        physician_schedule_slot.removeClass('active')
+        physician_schedule_slot.addClass('active-slot')
+        }
+    else if (physician_schedule_slot.hasClass('active-slot') == true){
+        physician_schedule_slot.removeClass('active-slot')
+        physician_schedule_slot.addClass('active')
+        } 
+
+  }
+  physician_user_schedules = [];
+  physician_user_schedules.push({patient_id:patient_id,physician_id:physician_id,schedule_date: schedule_date,time_slot_id:time_slot_id,question:"",apt_patient_id:''});
+}
+
+
+
+var appoint_canceled;
+
+function check_weekly_appointment(that, weekday_id, slot_val){
+  var user_id = $('#physician_user_id').val();
+  var slot_hour =  $(that).closest('a').hasClass('active') == true ? 0 : slot_val;
+   $.ajax({
+     url: '/physicians/check_weekly_appointment',
+     type: 'GET',
+     data: {
+       weekday: weekday_id,
+       physician_user_id: user_id,
+       authenticity_token: $('meta[name=csrf-token]').attr('content'),
+     },
+     success: function(data) {
+      if (data.status == true || appoint_canceled == true ) {
+         remaining_slots = slots.filter(function(sl){return sl.day_of_the_week_id !== weekday_id});
+         slots = remaining_slots
+         slots.push({day_of_the_week_id: weekday_id, slot_hour: slot_hour})
+         update_time_slot(user_id, weekday_id, slot_hour);
+      }else if (data.status == false ){
+         $('#user_id_val').val(user_id);
+         $('#weekday_id_val').val(weekday_id);
+         $('#slot_hours_val').val(slot_hour);
+         $('#time_slots_update_modal').modal('show');
+      }
+     },
+     error: function(data) {}
+   });
+ }
+
+
+function update_time_slot(user_id, weekday_id, slot_hour){
+  $.ajax({
+    url: 'update_time_slot.js',
+    type: 'GET',
+    data: {
+      day_of_the_week_id: weekday_id,
+      physician_user_id: user_id,
+      slot_hour: slot_hour,
+      cancel_appointments: true,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      update_schedule_slots(weekday_id)
+    },
+    error: function(data) {}
+  });
+}
+
+
+
+function update_schedule_time_slot(user_id){
+ if (window.location.search.substring(1, 3) === "id") {
+    var patient_user_id = window.location.search.substring(1).split('id=').pop();
+   }
+  $.ajax({
+    url: 'update_schedule_time_slot.js',
+    type: 'GET',
+    data: {
+      user_id: user_id,
+      patient_id : patient_user_id,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      $('.app-btn-set').show();
+    },
+    error: function(data) {}
+  });
+}
+
+function deleteAppointment(){
+  appoint_canceled = true;
+  var user_id = $('#user_id_val').val();
+  var weekday_id = $('#weekday_id_val').val();
+  var slot_hour = $('#slot_hours_val').val();
+  slots.push({day_of_the_week_id: weekday_id, slot_hour: slot_hour})
+  $('#time_slots_update_modal').modal('hide');
+  update_time_slot(user_id, weekday_id, slot_hour);
+}
+
+function update_schedule_slots(weekday_id) {
+  remaining_slots = schedules.filter(function(sch){return sch.week_day_id !== weekday_id});
+  schedules = remaining_slots
+  remaining_not_onboarded_slots = not_onboarded_schedules.filter(function(sch){return sch.week_day_id !== weekday_id});
+  not_onboarded_schedules = remaining_not_onboarded_slots
+}
+
+function editInsurance(name, id) {
+  $('.insurance_company_error').html("")
+  $('#company_name_update').val(name);
+  $('#company_id_update').val(id);
+  $('#update_insurance').modal('show');
+}
+
+function editSalesman(id) {
+  $('.insurance_company_error').html("")
+  $('#update_insurance').modal('show');
+  $('#salesman_id_update').val(id);
+}
+
+function deleteInsurance(name, id) {
+  $(".insurance_error").html("")
+  $('#insurance_name_delete').val(name);
+  $('#insurance_id_delete').val(id);
+  $('#insurance_name_delete').html("Are you sure you want to delete this "+name +"?");;
+  $('#delete_insurance').modal('show');
+}
+
+function deleteStaff(name, id) {
+  $(".staff_error").html("")
+  $('#staff_name_delete').val(name);
+  $('#staff_id_delete').val(id);
+  $('#staff_name_delete').html("Are you sure you want to remove staff "+name +"?");;
+  $('#delete_staff').modal('show');
+}
+
+function deleteWellnessService(id) {
+  $(".wellness_service_error").html("")
+  $('#wellness_service_id_delete').val(id);
+  $('#wellness_service_name_delete').html("Are you sure you want to remove service ?");;
+  $('#delete_wellness_service').modal('show');
+}
+
+function delete_additional_question(id,specialty) {
+  $(".question_error").html("")
+  $('#specialty_id').val(specialty);
+  $('#question_id_delete').val(id);
+  $('#delete_question').modal('show');
+}
+
+function editAdditionalQuestion(name, id, specialty, question_type) {
+  $('.additional_question_error').html("")
+  $('#question_update').val(name);
+  $('#question_id_update').val(id);
+  $('#specialty_id_update').val(specialty);
+  if (question_type == 'false')
+  {
+    question_type = false
+  }
+  $('input#question_type_update').prop('checked', question_type);
+  $('#update_additional_question').modal('show');
+}
+
+function editSpecialty(name, id,alias,file_name,group_name,category) {
+  $(".specialty_error").html("")
+  $('#specialty_name_update').val(name);
+  $('#specialty_alias_update').val(alias);
+  $('#specialty_id_update').val(id);
+  $('#specialty_image_value').val(file_name);
+  $('#specialty_group_name_update').val(group_name);
+  $('#specialty_category_update').val(category);
+  $('#update_speciality').modal('show');
+}
+
+function editResource(title, id,resource_type,preview_image,resource_image) {
+  $(".resource_error").html("")
+  $('#resource_title_update').val(title);
+  $('#resource_type_update').val(resource_type);
+  $('#preview_image_value').val(preview_image);
+  $('#resource_id_update').val(id);
+  $('#resource_image_value').val(resource_image);
+  $('#update_resource').modal('show');
+  if(document.getElementById('resource_type_update').value == "pdf" ){
+    $('#preview_update_image_section').show();
+  }
+}
+
+function editStaff(first_name, last_name,email,phone,id) {
+  $(".staff_error").html("")
+  $('#staff_first_name_update').val(first_name);
+  $('#staff_last_name_update').val(last_name);
+  $('#staff_email_update').val(email);
+  $('#staff_mobile_update').val(phone);
+  $('#staff_id').val(id);
+  $('#update_staff').modal('show');
+}
+
+function editWellnessService(id) {
+
+  $.ajax({
+    url: 'fetch_wellness_service',
+    type: 'GET',
+    data: {id: id },
+    success: function(result) {
+      if( result.status == true) {
+        var wellness_service = result.wellness_service
+        $(".wellness_service_error").html("")
+        $('#wellness_service_title_update').val(wellness_service.title);
+        $('#wellness_service_description_update').val(wellness_service.description);
+        $('#wellness_service_amount_update').val(wellness_service.amount);
+        $('#wellness_service_discount_update').val(wellness_service.discount_percent);
+        $('#wellness_service_order_update').val(wellness_service.order_number);
+        $('#wellness_service_id').val(wellness_service.id);
+        $('#update_wellness_service').modal('show');
+      } else {
+        $(".wellness_service_error").html(result.message)
+        $('#update_wellness_service').modal('show');
+      }
+    },
+    error: function(data) {}
+  }); // end of ajax function
+
+
+}
+
+function activeEvent(name, id){
+  $.ajax({
+      url: '/events/activate_event', 
+      type: 'get',
+      data: {
+        name: $('update_active_event').val(),
+        id: id,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('update_active_event').modal('hide');
+        }
+      },
+      error: function(data) {}
+  }); // end of ajax function
+}
+
+function activeOffer(name, id){
+  $.ajax({
+      url: '/offers/activate_offer', 
+      type: 'get',
+      data: {
+        name: $('update_active_offer').val(),
+        id: id,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('update_active_offer').modal('hide');
+        }
+      },
+      error: function(data) {}
+  }); // end of ajax function
+}
+
+function activeArticle(name, id){
+  $.ajax({
+      url: '/articles/active_article', 
+      type: 'get',
+      data: {
+        name: $('update_active_article').val(),
+        id: id,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('update_active_article').modal('hide');
+        }
+      },
+      error: function(data) {}
+  }); // end of ajax function
+}
+
+function activeSurvey(name, id){
+  $.ajax({
+      url: '/surveys/active_survey', 
+      type: 'get',
+      data: {
+        name: $('update_active_survey').val(),
+        id: id,
+        authenticity_token: $('meta[name=csrf-token]').attr('content')
+      },
+      success: function(data) {
+        if (data.status){
+          window.location.reload();
+        }
+        else{
+          $('update_active_survey').modal('hide');
+        }
+      },
+      error: function(data) {}
+  }); // end of ajax function
+}
+
+function submitResetSurvey(){
+  $.ajax({
+    url: '/surveys/'+$('#survey_id_reset').val()+'/reset',
+    type: 'get',
+    data: {
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      if (data.status){
+        window.location.reload();
+      }
+      else{
+        $('#reset_survey').modal('hide');
+      }
+    },
+    error: function(data) {}
+  }); // end of ajax function
+}
+
+function editSubSpecialty(name, id, specialty_id) {
+  $(".sub_specialty_error").html("")
+  $('#sub_specialty_name_update').val(name);
+  $('#sub_id_update').val(id);
+  $('#sub_specialty_id_update').val(specialty_id);
+  $('#sub_specialty_update').modal('show');
+}
+
+function deleteSpecialty(name, id) {
+  $(".specialty_error").html("")
+  $('#specialty_id_delete').val(id);
+  $('#specialty_name_delete').html("Are you sure you want to delete this "+name +"?");
+  $('#delete_speciality').modal('show');
+}
+function deleteEvent(name, id) {
+  $('#event_id_delete').val(id);
+  $('#event_name_delete').html("Are you sure you want to delete this "+name +" event?");
+  $('#delete_event').modal('show');
+}
+
+function deleteArticle(name, id) {
+  $('#article_id_delete').val(id);
+  $('#article_name_delete').html("Are you sure you want to delete this "+name +" article?");
+  $('#delete_article').modal('show');
+}
+
+function deleteSurvey(name, id) {
+  $('#survey_id_delete').val(id);
+  $('#survey_name_delete').html("Are you sure you want to delete this "+name +" survey?");
+  $('#delete_survey').modal('show');
+}
+
+function deleteOffer(name, id) {
+  $('#offer_id_delete').val(id);
+  $('#offer_name_delete').html("Are you sure you want to delete this offer?");
+  $('#delete_offer').modal('show');
+}
+
+function resetSurvey(name, id) {
+  $('#survey_id_reset').val(id);
+  $('#survey_name_reset').html("Are you sure you want to reset this survey for all AE members?");
+  $('#reset_survey').modal('show');
+}
+
+function deleteResource(id) {
+  $(".resource_error").html("")
+  $('#resource_id_delete').val(id);
+  $('#resource_name_delete').html("Are you sure you want to delete this Resource?");
+  $('#delete_resource').modal('show');
+}
+
+function physicianagreement(agreement_date){
+  if (agreement_date == "false"|| agreement_date == "true"){
+     window.location = "/physicians/physician_agreement?redirect=false"
+  }
+}
+
+function physicianetraining(id, agreement_date,e_training_details){
+  if (agreement_date == "true" || e_training_details == "true"){
+    window.location = "/physicians/etraining?id="+id+"&redirect="+false
+  }
+  else if (window.location.href.indexOf("etraining") > -1) {
+    window.location = "/physicians/etraining?id="+id+"&redirect="+false
+  }
+ else{
+   $('#physician_onboard_modal').modal('show');
+ }
+}
+
+
+function physicianaccountdetails(agreement_date,account_details,physician_schedules){
+  if ((agreement_date == "true")  || (account_details == "true" && physician_schedules == "true") ){
+    window.location = "/physicians/account_details?redirect=false"
+  }
+  else if (window.location.href.indexOf("account_details") > -1) {
+    window.location = "/physicians/account_details?redirect=false"
+  }
+ else{
+   $('#physician_onboard_modal').modal('show');
+ }
+}
+
+function tdclick(that) {
+  var that1 = that
+  $(that1).closest('tr').remove();
+  titlecount = $('#titlecount').val() ;
+  $('#titlecount').val(titlecount-1)
+  $('#deletecount').val(titlecount+1)
+}
+
+function physicianinvitestaff(physician_schedules){
+  if (physician_schedules == "true"){
+    window.location = "/staffs/new?redirect=false"
+  }
+  else if (window.location.href.indexOf("staffs") > -1) {
+    window.location = "/staffs/new?redirect=false"
+  }
+ else{
+   $('#physician_onboard_modal').modal('show');
+ }
+}
+
+function physicianschedule(agreement_date,schedules){
+
+  if (schedules == "true" || agreement_date=="true" ){
+    window.location = "/physicians/physician_schedules?redirect=false"
+  }
+  else if (window.location.href.indexOf("physician_schedules") > -1) {
+    window.location = "/physicians/physician_schedules?redirect=false"
+  }
+ else{
+   $('#physician_onboard_modal').modal('show');
+ }
+
+}
+
+
+function deleteSubSpecialty(name, id) {
+  $(".specialty_error").html("")
+  $('#delete_sub_specialty_name').val(name);
+  $('#delete_sub_specialty_id').val(id);
+  $('#delete_sub_specialty_name').html("Are you sure you want to delete this "+name +"?");
+  $('#delete_sub_speciality').modal('show');
+}
+
+function deleteFamilyMember(name, id) {
+  $(".family_member_error").html("")
+  $('#family_member_delete').html(name);
+  $('#family_member_id_delete').val(id);
+  $('#delete_family_member').modal('show');
+}
+
+function resendFamilyMember(name, id) {
+  $(".family_member_error").html("")
+  $('#family_member_resend').html(name);
+  $('#family_member_id_resend').val(id);
+  $('#resend_family_member').modal('show');
+}
+
+function editMsaRegion(name, id,state_id,is_hidden,yearly_charge,monthly_charge, latitude, longitude, zipcodes) {
+  $(".msa_region_error").html("")
+  $('#msa_region_name_update').val(name);
+  $('#individual_yearly_charge_update').val(yearly_charge);
+  $('#individual_monthly_charge_update').val(monthly_charge);
+  $('#msa_region_id_update').val(id);
+  $('#state_id_update').val(state_id);
+  $('#msa_region_latitude_update').val(latitude);
+  $('#msa_region_longitude_update').val(longitude);
+  $('#msa_region_zipcodes_update').val(zipcodes.replace(/,/g, '\n'));
+  if (is_hidden == 'true'){
+    $('#update_is_hidden').prop('checked',true);
+  }else{
+    $('#update_is_hidden').prop('checked',false);
+  }
+  $('#update_is_hidden').val(is_hidden);
+  $('#update_msa_region').modal('show');
+}
+
+function activatePhysician(id,name) {
+  $('#physician_name').html("Are you sure you want to activate physician "+name +"?");
+  $('#physician_id').val(id);
+  $('#activate_deactivate_reinvite_physician').modal('show');
+}
+
+function deactivatePhysician(id,name,region_name,count,phase_name,patients_count) {
+  if (patients_count > 1){
+    param_patient = 'patients';
+    params = 'these Patients';
+  }
+  else{
+    param_patient = 'patient';
+    params = 'this Patient';
+  }
+  if (patients_count > 0){
+    $('#dr_physician_name').html("Dr. "+name +" is a Primary Doctor for "+ patients_count+" "+param_patient+". Please assign a different PCP for "+ params+" before deactivating. Click OK to view the list of Patients associated.");
+    $('#dr_physician_id').val(id);
+    $('#cannot_deactivate_pcp').modal('show');
+  }else{
+    $('#physician_name').html("Are you sure you want to archive physician "+name +"?");
+    $('#physician_id').val(id);
+    $('#activate_deactivate_reinvite_physician').modal('show');
+  }
+}
+
+function deactivateUser(id,name,role) {
+    $('#user_name').html("Are you sure you want to archive "+role+" "+name +"?");
+    $('#user_id').val(id);
+    $('#deactivate_user').modal('show');
+}
+
+function activateUser(id,name,role) {
+  $('#archive_user_name').html("Are you sure you want to activate "+role+" "+name +"?");
+  $('#archive_user_id').val(id);
+  $('#activate_user').modal('show');
+}
+
+function removeStaff(id,name) {
+  $('#staff_name').html("Are you sure you want to remove staff "+name +"?");
+  $('#staff_id').val(id);
+  $('#remove_staff').modal('show');
+}
+
+function updateStaff(id) {
+  $('#staff_id').val(id);
+  $('#remove_staff').modal('show');
+}
+
+
+function resend_staff_invite(id,name){
+  $('#staff_name').html("Are you sure you want to re-send staff invite to "+name +"?");
+  $('#staff_id').val(id);
+  $('#resend_staff_invite').modal('show');
+}
+
+function activate_family_member(family_member_id,name){
+  $(".family_error").html("");
+  $('#family_id_activate').val(family_member_id);
+  $('#family_name_activate').html("Are you sure you want to activate this "+name +"?");
+  $('#activate_family').modal('show');
+}
+
+function resendInvite(id,name,user_status) {
+  if (!user_status)
+  {
+    $('#physician_name').html("Are you sure you want to re-invite physician "+name +"?");
+    $('#physician_id').val(id);
+    $('#activate_deactivate_reinvite_physician').modal('show');
+  }
+  else
+  {
+    $('#cant_resend_invite').modal('show');
+  }
+}
+
+function activateRegisteredPhysician(id,name) {
+  $('#registered_physician_name').html("Are you sure you want to activate physician "+name +"?");
+  $('#physician_id').val(id);
+  $('#activate_deactivate_registered_physician').modal('show');
+}
+
+function deactivateRegisteredPhysician(id,name) {
+  $('#registered_physician_name').html("Are you sure you want to deactivate physician "+name +"?");
+  $('#physician_id').val(id);
+  $('#activate_deactivate_registered_physician').modal('show');
+}
+
+function resendActivationLink(id) {
+  $('#activation_msg').html("Are you sure you want to resend activation link?");
+  $('#patient_user_id').val(id);
+  $('#activation_popup').modal('show');
+}
+
+function openReInviteModal(invitation_id,name) {
+  $('#invite_msg').html("Are you sure you want to re-invite "+name +"?");
+  $('#invitation_id').val(invitation_id);
+  $('#reinvite_popup').modal('show');
+}
+
+function openReApproveModal(user_id,name) {
+    $('#invite_msg').html("Are you sure you want to re-send activation mail to "+name +"?");
+    $('#user_id').val(user_id);
+    $('#reapprove_popup').modal('show');
+}
+
+function resendPatientInvite(id,name,user_status) {
+ if (!user_status)
+ {
+   $('#patient_name').html("Are you sure you want to re-invite patient "+name +"?");
+   $('#patient_id').val(id);
+   $('#activate_deactivate_reinvite_patient').modal('show');
+
+  }
+  else
+ {
+   $('#cant_resend_patient_invite').modal('show');
+  }
+}
+
+function resendPatientInvitePatient(id,name) {
+   $('#patient_name').html("Are you sure you want to re-invite patient "+name +"?");
+   $('#invitation_id').val(id);
+   $('#reinvite_patient').modal('show');
+}
+
+function card_number() {
+  $("#patient_card_number").mask("9999-9999-9999-9999");
+}
+
+function deleteSetPreference(id) {
+  $(".preference_error").html("")
+  $('#preference_delete').html("Are you sure you want to delete this "+name +"?");
+  $('#preference_id_delete').val(id);
+  $('#delete_preference').modal('show');
+}
+
+function deleteCoupon(id) {
+  $(".coupon_error").html("")
+  $('#coupon_delete').html("Are you sure you want to delete this "+name +"?");
+  $('#coupon_id_delete').val(id);
+  $('#delete_coupon').modal('show');
+}
+
+function deleteMsaRegion(name, id, count) {
+  $(".msa_error").html("")
+  if(count > 0){
+    $('#msa_region_delete_error').html("The entity you are attempting to delete has Physicians / Patient associated with it, please contact a System Admin for help.")
+    $('#delete_msa_region_error').modal('show');
+  }else{
+    $('#msa_name_delete').html("Are you sure you want to delete this "+name +"?");
+    $('#msa_id_delete').val(id);
+    $('#delete_msa_region').modal('show');
+  }
+}
+
+function editPhysician(name, id) {
+  $('.physician_error').html("")
+  $('#physician_name_update').val(name);
+  $('#physician_id_update').val(id);
+  $('#update_physician').modal('show');
+}
+
+function editPatient(name, id) {
+  $('.physician_error').html("")
+  $('#physician_name_update').val(name);
+  $('#physician_id_update').val(id);
+  $('#update_physician').modal('show');
+}
+
+function msaPhysicianSearch()
+{
+  $.ajax({
+    url: 'edit',
+    type: 'GET',
+    data: {search: true, search_value: document.getElementById("msa_physician_search").value},
+    success: function(result) {
+      $("#example_wrapper").dataTable().fnDestroy()
+      $("#example_wrapper").html(result);
+      $("#example_wrapper").dataTable({
+        language: {
+            searchPlaceholder: "Search"
+        },
+        "lengthMenu": [ [10, 25, 50, -1], [10, 25, 50, "All"] ]
+      });
+      $( "#example_wrapper_wrapper div.row:nth-child(1)" ).addClass("item1");
+      $( "#example_wrapper_wrapper div.row:nth-child(2)" ).addClass("item2");
+      $( "#example_wrapper_wrapper div.row:nth-child(3)" ).addClass("table_footer");
+      $( ".item1 div:first" ).addClass("show_row");
+      $( ".item1 div:nth-child(2)" ).addClass("show_search");
+    },
+    error: function(data) {}
+  }); // end of ajax function
+}
+
+
+
+$(function(){
+  $('.hide-show').show();
+  $('.hide-show span').addClass('show')
+
+  $('.hide-show span').click(function(){
+    if( $(this).hasClass('show') ) {
+      $(this).text('Hide');
+      $('input[name="user[password]"]').attr('type','text');
+      $(this).removeClass('show');
+    } else {
+       $(this).text('Show');
+       $('input[name="user[password]"]').attr('type','password');
+       $(this).addClass('show');
+    }
+  });
+
+  $('form button[type="submit"]').on('click', function(){
+    $('.hide-show span').text('Show').addClass('show');
+    $('.hide-show').parent().find('input[name="user[password]"]').attr('type','password');
+  });
+});
+
+
+function updateMSARegion(msa_region_id,msa_region_name,selected_region, count){
+  if (selected_region.value == "Live"){
+    $('#phase_change_msg').html("Are you sure you want to move region "+ msa_region_name +" to Live?")
+    $('#confirm_phase_change').modal('show');
+    $("#confirm_phase_change_yes").click(function(){
+      msa_region_update(msa_region_id,selected_region)
+    });
+    $("#confirm_phase_change_no").click(function(){
+      selected_region.value = "Non-Live"
+    });
+  }
+  else {
+    msa_region_update(msa_region_id,selected_region)
+  }
+}
+
+function msa_region_update(msa_region_id,selected_region){
+  $.ajax({
+    url: '/msa_regions/'+msa_region_id,
+    type: 'PUT',
+    data: {
+      phase_name: selected_region.value,
+      id: msa_region_id,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      if (data.status){
+        window.location.reload();
+      }
+      else{
+        window.location.reload();
+      }
+    },
+    error: function(data) {}
+  });
+}
+
+function showPatientContact(patient_contact_number, emergency_phone, family_type){
+  $('#emergency_contact_message').html('');
+  $('#contact_patient_message').html("Your patient's contact number is : "+patient_contact_number);
+  if(emergency_phone!="" && family_type!="minor_child"){
+    $('#emergency_contact_message').html("Your patient's emergency contact number is : "+emergency_phone);
+  }
+  $('#show_patient_contact_number').modal('show');
+}
+
+function cancelSubscription(patient_id) {
+  $("#confirm_cancel_subscription").modal('show');
+}
+
+function confirmCancelSubscription(patient_id, txt) {
+  $.ajax({
+    url: '/patients/cancel_subscription',
+    type: 'GET',
+    data: {
+      user_id: patient_id,
+      amount_paid: $('#paid_amount').val(),
+      ckh_amount: $('#amount_to_ckh').val(),
+      refund_formula: $('#refund_formula').val(),
+      refund_amount: $('#confirm_amount').val()
+    },
+    beforeSend: function() {
+      $('#admin_cancel_confirm_btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+    },
+    success: function(data) {
+      if (data.status) {
+        window.location.reload();
+      }
+      else{
+      }
+    },
+    complete: function() {
+      $('#admin_cancel_confirm_btn').prop('disabled', false).text(txt);
+    },
+    error: function(data) {}
+  });
+}
+
+function openAppointmentCancelModal(appointment_id,name) {
+    $('#appointment_cancel_msg').html("Are you sure you want to cancel appointment with "+name +"?");
+    $('#appointment_id').val(appointment_id);
+    $('#appointment_cancel_popup').modal('show');
+}
+
+function histroyPassword(appointment_id) {
+  if ($("#history_password_enabled").val()=="true"){
+  $('#password_appointment_id').val(appointment_id);
+  document.getElementById('user_password_check').value = ""
+  $('.user_password_error').html("");
+  $('#check_user_password').modal('show');
+}
+else{
+  pdf_url = "/physicians/export_patient_detail_pdf.pdf?detail=history&id="+appointment_id
+  csv_url = "/physicians/export_patient_detail_csv.csv?detail=history&id="+appointment_id
+  $('#history_download_option_message').html("<a href="+pdf_url+">PDF</a></br><a href="+csv_url+">CSV</a>");
+  $('#history_download_option_modal').modal('show');
+}
+}
+
+
+  function display_family(id){
+    var user = $("#user_family_member_id").val()
+    $.ajax({
+      url: '/family_members/family_member_details',
+      type: 'GET',
+      data: {
+        user_id: id
+      },
+      success: function(data) {
+        if (data.status) {
+          window.location = "/family_members?id="+data.id;
+        //  $("#family_member_email").val(data.email);
+        //  $("#family_member_first_name").val(data.first_name);
+        //  $("#family_member_last_name").val(data.last_name);
+        //  $("#family_phone_number").val(data.mobile)
+        }
+      },
+      error: function(data) {}
+    });
+}
+
+apt_patient_id = ''
+function display_patient(user_id){
+  var apt_patient_id = user_id
+  physician_user_schedules[0]["apt_patient_id"] = apt_patient_id
+}
+
+function physician_phase_change_confirm(phase_name,selected_phase){
+  $("#physician_confirm_phase_change_yes").click(function(){
+    selected_phase.value = selected_phase.value
+    $('#physician_confirm_phase_change').modal('hide');
+    $('#update_physician').modal('show');
+  });
+  $("#physician_confirm_phase_change_no").click(function(){
+    selected_phase.value = phase_name
+    $('#physician_confirm_phase_change').modal('hide');
+    $('#update_physician').modal('show');
+  });
+}
+
+function sendpreview(preview_content){
+  $.ajax({
+    url: '/invitations/send_preview_email',
+    type: 'GET',
+    data: {
+      key: preview_content
+    },
+    success: function(data) {
+      if (data.status) {
+       window.location.reload();
+      }
+    },
+    error: function(data) {}
+  });
+}
+
+function set_sign_up_promotion_details(plan_name,region_id){
+  $.ajax({
+    url: '/patients/get_plan_details',
+    type: 'GET',
+    data: {
+      plan: plan_name,
+      region: region_id
+    },
+    success: function(data) {
+      if(data.success==true){
+       var plan_end_date = new Date(data.end_date);
+       plan_end_date = new Date (plan_end_date.setTime(plan_end_date.getTime()-1));
+       $(".sign_up_plan_type").html(data.plan_type);
+       $(".sign_up_plan_duration").html(data.plan_duration);
+       $(".sign_up_plan_amount").html(data.amount);
+       $(".sign_up_plan_total").html(data.amount);
+       $(".display_sign_up_plan_type").html(data.duration_type_amount);
+       $(".sign_up_subscription_date").html(plan_end_date.toLocaleDateString());
+       $(".sign_up_duration_type").html(data.duration_type.replace('ly',''));
+    }
+    },
+    error: function(data) {}
+  });
+}
+
+function set_coupon_promotion_details(plan_name,region_id){
+  var promo_code_id = $('#discount_coupon_id').val();
+  $.ajax({
+    url: '/patients/set_coupon_plan_details',
+    type: 'GET',
+    data: {
+      coupon_id:promo_code_id,
+      plan_name: plan_name,
+      region: region_id,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      if(data.success==true){
+        var plan_end_date_with_coupn = new Date(data.end_date);
+        plan_end_date_with_coupn = new Date (plan_end_date_with_coupn.setTime(plan_end_date_with_coupn.getTime()-1));
+        var total_amount_value       = data.total.split('.')[0]
+        var total_amount_decimal     = data.total.split('/')[1]
+
+        var discount_amount_value    = data.discount_amount.split('.')[0]
+        var discount_amount_decimal  = data.discount_amount.split('/')[1]
+        res_discount_amount          = discount_amount_value + "/" + discount_amount_decimal
+        if (data.coupon_duration == 'once'){
+          res_total_amount = total_amount_value
+        }
+        else {
+          res_total_amount = total_amount_value + "/" + total_amount_decimal
+        }
+        $(".coupon_sign_up_plan_type").html(data.coupon_plan_type);
+        $(".coupon_sign_up_plan_duration").html(data.plan_duration);
+        $(".coupon_sign_up_plan_amount").html(data.amount);
+        $(".coupon_sign_up_plan_total").html(res_discount_amount);
+        $(".coupon_sign_up_promotion_plan_amount").html(res_total_amount);
+        $(".display_sign_up_coupon_plan_type").html(res_discount_amount);
+        $(".coupon_sign_up_subscription_date").html(plan_end_date_with_coupn.toLocaleDateString());
+        $(".coupon_sign_up_duration_type").html(data.plan_duration.replace('ly',''));
+    }
+  }
+});
+}
+
+function updateErrorField(){
+  $('.region_plan_error').empty()
+}
+
+function pharmacyInfo(user_id) {
+  pdf_url = "/physicians/export_pharmacy_detail_pdf.pdf?detail=pharmacy&id="+user_id
+  csv_url = "/physicians/export_pharmacy_detail_csv.csv?detail=pharmacy&id="+user_id
+  $('#pharmacy_download_option_message').html("<a href="+pdf_url+">PDF</a></br><a href="+csv_url+">CSV</a>");
+  $('#pharmacy_download_option_modal').modal('show');
+}
+
+function checkStaffDisburse(){
+  var payout_type = $('input:radio[name=payout_disburse]:checked').val();
+  if(payout_type == "true") {
+    $("#disburse_staff_payout").modal('show');
+  } else {
+    $("#disburse_practice_payout").modal('show');
+  }
+}
+
+function updatePayoutDisburse(payout_status){
+  $.ajax({
+    url: '/physicians/update_disburse_payout_status',
+    type: 'POST',
+    dataType: "json",
+    data: {
+      payout_status: payout_status,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    success: function(data) {
+      if (data.status == true && data.payout_status == 'payout_to_staff') {
+       window.location.reload();
+       $("#practice_address_change").modal('hide');
+      }
+      else if (data.status == true && data.payout_status == 'payout_to_practice' && data.practice_account== true ) {
+        window.location.reload();
+       $("#practice_address_change").modal('hide');
+      }
+      else {
+        window.open(data.account_url,'_blank');
+      }
+
+    },
+    error: function(data) {}
+  });
+}
+
+
+function cancelPayout(){
+  window.location.reload();
+  $("#practice_address_change").modal('hide');
+}
+
+function cancelSubscription(patient_id) {
+  $.ajax({
+    url: 'fetch_subscription_details.js',
+    type: 'GET',
+    data: {
+      id: patient_id,
+      authenticity_token: $('meta[name=csrf-token]').attr('content')
+    },
+    beforeSend: function() {
+      $('#admin_cancel_subscription').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+    },
+    success: function(data) {},
+    complete: function() {
+      $('#admin_cancel_subscription').prop('disabled', false).text('Cancel Subscription');
+    },
+    error: function(data) {}
+  });
+}
+
+function signup_change_plan(){
+  $("#page4").hide();
+  $("#page3").show();
+  $('.region_plan_error').text('');
+}
+
+
+
+function registrationMessage(element,event,key) {
+  var user_password =$("#user_password").val()
+  if($("#user_password").val()!=""){
+    var password_pattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#\$%\^&\*])*([\x20-\x7E]){8,50}$/.test(user_password);
+}
+var reg_password = $("#password").val()
+if($("#password").val()!=""){
+    var reg_password_pattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#\$%\^&\*])*([\x20-\x7E]){8,50}$/.test(reg_password);
+}
+  var ele = event.target;
+  if(key == 'confirm_password' && $("#password_confirmation").val()!= "" && ($("#password").val()!=$("#password_confirmation").val())){
+   ele.parentElement.childNodes[6].style.display = 'block';
+   ele.parentElement.childNodes[6].innerHTML = 'Entered Confirm Password is not matching with New Password. Please enter again.';
+  }
+  else if(key == 'reg_password' && $("#password").val()!= "" && reg_password_pattern==false){
+   ele.parentElement.childNodes[6].style.display = 'block';
+   ele.parentElement.childNodes[6].innerHTML = 'Invalid Password.';
+ }
+   else if(key == 'user_confirm_password' && $("#user_password_confirmation").val()!="" && ($("#user_password").val()!=$("#user_password_confirmation").val())){
+   ele.parentElement.childNodes[5].style.display = 'block';
+   ele.parentElement.childNodes[5].innerHTML = 'Entered Confirm Password is not matching with New Password. Please enter again.';
+  }
+
+  else if(key == 'user_password' && $("#user_password").val()!="" && password_pattern==false){
+   ele.parentElement.childNodes[5].style.display = 'block';
+   ele.parentElement.childNodes[5].innerHTML = 'Invalid Password.';
+  }
+  else if(!element.value && key !='key_doctor'){
+    ele.parentElement.childNodes[5].style.display = 'block';
+    ele.parentElement.childNodes[5].innerHTML = 'Field is Required';
+  }
+  else if(!element.value && key =='key_doctor'){
+    ele.parentElement.childNodes[3].style.display = 'block';
+    ele.parentElement.childNodes[3].innerHTML = 'Field is Required';
+  }
+  else if(key =='key_doctor'){
+    ele.parentElement.childNodes[4].innerHTML = '';
+    ele.parentElement.childNodes[4].style.display = 'none';
+  }
+  else if(!element.value && (key=='user_password' || key=='user_confirm_password')){
+    ele.parentElement.childNodes[15].style.display = 'block';
+    ele.parentElement.childNodes[15].innerHTML = 'Field is Required';
+  }
+   else if((key=='user_password' || key=='user_confirm_password')){
+    ele.parentElement.childNodes[5].style.display = '';
+    ele.parentElement.childNodes[5].innerHTML = 'none';
+  }
+  else{
+    ele.parentElement.childNodes[6].innerHTML = '';
+    ele.parentElement.childNodes[6].style.display = 'none';
+  }
+
+}
+
+function ckh_FAQs(){
+  if (new URL(window.location.href).searchParams.get("source") == 'android'){
+    window.location = window.location.origin+window.location.pathname+window.location.search+"#faq"
+  }else{
+    window.open("https://www.accesselitehealth.com/faqs")
+  }
+}
+
+function reset_email_textarea(id){
+  if($('#'+id)[0] != undefined){
+    $('#'+id)[0].style.display = 'none';
+  }
+}
+
+document.addEventListener('touchmove', function(e) {
+
+if ($('#new_patient input').is( ":focus" )) {
+     $('#new_patient input:focus').blur();
+   }
+   else{
+   }
+
+}, { passive: false });
+
+document.addEventListener('touchmove', function(e) {
+
+  if ($('#new_user input').is( ":focus" )) {
+       $('#new_user input:focus').blur();
+     }
+     else{
+     }
+  }, { passive: false });
+
+document.addEventListener('touchmove', function(e) {
+
+if ($('.body-registration-signup input').is( ":focus" )) {
+     $('.body-registration-signup input:focus').blur();
+   }
+   else{
+
+   }
+
+}, { passive: false });
+
+function goBack() {
+  window.history.go(-1);
+}
+
+$(document).ready(function () {
+  $('#user_remote_practice').change(function() {
+    if(this.checked) {
+      $('.user_practice_address_attributes').attr('required', false);
+    }
+    else{
+      $('.user_practice_address_attributes').attr('required', true);
+    }       
+  });
+});
+function deSelectAllTimeSlots(week_name){
+    $("."+week_name+".active").each(function() {
+        $( this ).find('a').click()
+    });
+}
+
+function selectAllTimeSlots(week_name){
+    $("."+week_name+":not(.active)").each(function() {
+        $( this ).find('a').click()
+    });
+}
+
+// Schedule section
+$(document).ready( function () {
+    $(".hour_slot, .disabled").change(function() {
+        disableSelectOptions($(this))
+    }); // end of hour_slot
+    $(".hour_slot, .disabled").each(function() {
+        disableSelectOptions($(this))
+    });
+
+    $(".schedule-day-btn-closed").mouseover(function(){
+      mouseOnSchedules($(this))
+    });
+
+    $(".schedule-day-btn-closed").mouseout(function(){
+      mouseOffSchedules($(this))
+    });
+    
+    $('.schedule-day-btn-disabled').text("Closed");
+
+
+    $(".schedule-day-btn-closed").click(function(event) {
+        var week_id = $(this).data('week-id')
+        if($(this).hasClass("schedule-day-btn-disabled")){
+            $("#tr_"+week_id).removeClass("disabled")
+            $(this).removeClass("schedule-day-btn-disabled")
+            $(this).addClass("schedule-day-btn-hour_slot")
+            $(".select_"+week_id).each(function() {
+                $(this).removeAttr("disabled")
+                $(this).removeClass("disabled")
+            });
+            $("#closed_"+week_id).val('0')
+            $(this).text("Close");
+        } else {
+            $("#tr_"+week_id).addClass("disabled")
+            $(this).removeClass("schedule-day-btn-hour_slot")
+            $(this).addClass("schedule-day-btn-disabled")
+            $(".select_"+week_id).each(function() {
+                $(this).attr("disabled","disabled")
+                $(this).addClass("disabled")
+            });
+            $("#closed_"+week_id).val('1')
+            $(this).text("Open");
+        }
+    });
+
+    $('.schedule-day-btn-disabled').text("Closed");
+  
+});
+
+function disableSelectOptions( select_obj ){
+    var session_type = select_obj.data('session-type')
+    var this_value = Number(select_obj.val())
+    $("#"+select_obj.data('day-session')+'_'+session_type+'_'+select_obj.data('week-id')+" > option").each(function() {
+        if(session_type == 'end'){
+            if (Number(this.value) < this_value+60){
+                $(this).attr('disabled','disabled');
+            } else {
+                $(this).removeAttr('disabled')
+            }
+        } else {
+             if (Number(this.value) > this_value-60){
+                $(this).attr('disabled','disabled');
+            } else {
+                $(this).removeAttr('disabled')
+            }
+        }
+    });
+}
+function mouseOnSchedules(button){
+  if(button.hasClass("schedule-day-btn-disabled")){
+    button.text("Open"); 
+    button.addClass("open_week");
+  }
+  else{
+    button.text("Close");
+    button.addClass("open_week");
+  }
+}
+
+function mouseOffSchedules(button){
+  if(button.hasClass("schedule-day-btn-disabled")){
+    button.text("Closed");
+    button.removeClass("open_week");
+  }
+  else{
+    button.text("Open");
+    button.removeClass("open_week");
+  }
+}

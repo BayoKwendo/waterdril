@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+<link rel="icon" type="image/png" sizes="13x30" href="favicon.png">
+<title>AccessElite</title>
+
+<link rel="stylesheet" href="https://app.accesselitenow.com/css/font-awesome.min.css"/>
+<link rel="stylesheet" href="https://app.accesselitenow.com/css/bootstrap.css"/>
+<link rel="stylesheet" href="https://app.accesselitenow.com/css/index.css"/>
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]> <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script> <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script> <![endif]-->
+</head>
+<body>
+
+<div class="fixed-header">
+  <a href="https://www.accesselitehealth.com"><img src="https://app.accesselitenow.com/assets/concierg-logo.png" class="logo" /></a>
+  <div class="main-buttons">
+      <a class="button active" href="https://app.accesselitenow.com/doctors/login">Practice</a>
+      <a class="button" href="https://www.accesselitehealth.com">About Us</a>
+    </div>
+</div>
+
+<div class="nopage-wrap clearfix">
+  <div class="container">
+      <div class="row">
+        <div class="col-12 col-sm-12 pag-not-fnd">
+          <div class="text-center"><h1>Oops! That page can’t be found.</h1></div>
+          <div class="no-page-tabs">
+            <a class="button" href="https://app.accesselitenow.com/doctors/login">Practice</a>
+            <a class="button" href="https://www.accesselitehealth.com/">About Us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="site-info clearfix">
+   <div class="container">
+         <div class="col-centered text-center">
+               <div class="clmn">
+                  <h3><a href="https://www.accesselitehealth.com/contact-us/">Contact Us</a></h3>
+                  <p class="btm-margin2">4040 MacArthur Blvd, Suite 310<br> Newport Beach, CA 92660</p>
+                  <p><a href="mailto:info@accesselitehealth.com"><i class="fa fa-envelope" aria-hidden="true"></i>info@accesselitehealth.com</a></p>
+               </div>
+               <div class="clmn clmn2">
+                  <h3>Get In Touch</h3>
+                  <ul class="social-links">
+                     <li><a href="https://facebook.com/conciergekeyhealth/" target="_blank"><i class="fa fa-facebook-square" aria-hidden="true"></i>Facebook</a></li>
+                     <li><a href="https://twitter.com/concierge_key?lang=en" target="_blank"><i class="fa fa-twitter-square" aria-hidden="true"></i>Twitter</a></li>
+                     <li><a href="https://www.linkedin.com/company/concierge-key-health-llc/" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i>LinkedIn</a></li>
+                  </ul>
+               </div>
+         </div>
+   </div>
+</div>
+<div class="copyright">
+  <div class="container text-center">
+    <p><a href="owl.video.play.png.html#">Privacy Policy </a>, <a href="owl.video.play.png.html#">Acceptable Use Policy</a> &amp; <a href="https://www.accesselitehealth.com/terms-of-use/">Terms of Use </a>&copy; 2017 AccessElite</p>
+    </div>
+</div>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+<script>
+var $ = jQuery.noConflict();
+$(document).ready(function() {
+  var header = $(".fixed-header");
+    $(window).scroll(function() {
+        var scroll = $(window).scrollTop();
+        if (scroll >= 110 && $(this).width() > 767) {
+            header.addClass("slim-header");
+        } else {
+            header.removeClass('slim-header');
+        }
+    });
+});
+
+if ($(window).width() < 768) {
+  if (jQuery('body').hasClass('health')) {
+
+      /* cache dom referencess */
+      var $body = jQuery('body');
+
+      /* bind events */
+      jQuery(document)
+      .on('focus', 'input, select', function(e) {
+          $body.addClass('fixfixed');
+      })
+      .on('blur', 'input, select', function(e) {
+          $body.removeClass('fixfixed');
+      });
+  }
+}
+</script>
+
+</body>
+</html>

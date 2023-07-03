@@ -1,0 +1,8 @@
+{
+    apps: [{
+        name: "Stawisha UI",
+        script: "npx",
+        interpreter: "none",
+        args: "serve -s build -p 2390"
+    }]
+}
