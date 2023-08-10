@@ -62,6 +62,14 @@ export class Geologists extends React.Component {
             },
 
             {
+                key: "amount",
+                TrOnlyClassName: 'tsc',
+                text: "Pricing",
+                className: "tsc",
+                align: "left"
+            },
+
+            {
                 key: "lat",
                 TrOnlyClassName: 'tsc',
                 text: "Latitude",
@@ -76,6 +84,8 @@ export class Geologists extends React.Component {
                 className: "tsc",
                 align: "left"
             },
+
+
             {
                 key: "created_on",
                 TrOnlyClassName: 'tsc',
@@ -181,12 +191,13 @@ export class Geologists extends React.Component {
         let formData = {
             "name": this.state.name,
             "id_number": this.state.id_number,
-            "msisdn": this.state.msisdn,
+            "msisdn": this.state.msisdn.toString().replaceAll("+", ""),
             "location": this.state.address,
             "lat": this.state.latitude,
             "long": this.state.longitude,
+            "amount": this.state.amount,
+            "password": this.state.password,
             "role": "geologist",
-            "password": ""
         }
 
         this.setState({
@@ -308,6 +319,20 @@ export class Geologists extends React.Component {
                                         />
                                     </div>
                                     <br />
+                                    <span className="form__form-group-label">Pricing </span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="number"
+                                            name="amount"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Enter Amount"
+                                            className="input-without-border-radius"
+                                            value={this.state.amount}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
 
                                     <span className="form__form-group-label">ID Number</span>
                                     <div className="form__form-group-field">
@@ -389,6 +414,20 @@ export class Geologists extends React.Component {
                                                 </div>
                                             )}
                                         </PlacesAutocomplete>
+                                    </div>
+                                    <br />
+                                    <span className="form__form-group-label">Access Password</span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="password"
+                                            name="password"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Enter Password"
+                                            className="input-without-border-radius"
+                                            value={this.state.password}
+                                            onChange={this.handleChange}
+                                        />
                                     </div>
                                     <br />
                                 </div>

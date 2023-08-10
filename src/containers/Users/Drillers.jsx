@@ -77,36 +77,44 @@ export class Drillers extends React.Component {
                 align: "left"
             },
             {
+                key: "amount",
+                TrOnlyClassName: 'tsc',
+                text: "Pricing",
+                className: "tsc",
+                align: "left"
+            },
+            {
                 key: "created_on",
                 TrOnlyClassName: 'tsc',
                 text: "Created On",
                 className: "tsc",
                 align: "left"
-            },
-            {
-                key: "action",
-                text: "Options",
-                TrOnlyClassName: 'cell',
-                className: "cell",
-                width: 250,
-                sortable: false,
-                cell: record => {
-                    return (
-                        <Fragment className="center" >
-                            <button className="btn btn-primary btn-sm"
-                                style={
-                                    { marginRight: '10px' }}
-                                onClick={() => { this.isOpenEdit(record) }}
-
-                            >
-
-                                Edit
-                            </button>
-
-                        </Fragment>
-                    );
-                }
             }
+            // ,
+            // {
+            //     key: "action",
+            //     text: "Options",
+            //     TrOnlyClassName: 'cell',
+            //     className: "cell",
+            //     width: 250,
+            //     sortable: false,
+            //     cell: record => {
+            //         return (
+            //             <Fragment className="center" >
+            //                 <button className="btn btn-primary btn-sm"
+            //                     style={
+            //                         { marginRight: '10px' }}
+            //                     onClick={() => { this.isOpenEdit(record) }}
+
+            //                 >
+
+            //                     Edit
+            //                 </button>
+
+            //             </Fragment>
+            //         );
+            //     }
+            // }
         ];
 
 
@@ -146,6 +154,8 @@ export class Drillers extends React.Component {
             invoice_currency: 'KSH',
             mdata: mdata,
             isOpen: false,
+            amount: 0,
+            password: "",
             currencylabel: 'KSH',
             IsEdit: false,
             company: [],
@@ -210,12 +220,13 @@ export class Drillers extends React.Component {
         let formData = {
             "name": this.state.name,
             "id_number": this.state.id_number,
-            "msisdn": this.state.msisdn,
+            "msisdn": this.state.msisdn.toString().replaceAll("+", ""),
             "location": this.state.address,
             "lat": this.state.latitude,
             "long": this.state.longitude,
             "role": "test_pump",
-            "password": ""
+            "amount": this.state.amount,
+            "password": this.state.password
         }
 
         this.setState({
@@ -338,6 +349,22 @@ export class Drillers extends React.Component {
                                     </div>
                                     <br />
 
+
+                                    <span className="form__form-group-label">Pricing </span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="number"
+                                            name="amount"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Enter Amount"
+                                            className="input-without-border-radius"
+                                            value={this.state.amount}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
+
                                     <span className="form__form-group-label">ID Number of Main Contact</span>
                                     <div className="form__form-group-field">
                                         <Form.Control
@@ -373,8 +400,7 @@ export class Drillers extends React.Component {
                                     </div>
                                     <br />
 
-                                    <span className="form__form-group-label">Location</span>
-
+                                    <span className="form__form-group-label">Location Area</span>
                                     <div className="form__form-group-field">
                                         <PlacesAutocomplete
                                             value={this.state.address}
@@ -420,6 +446,21 @@ export class Drillers extends React.Component {
                                         </PlacesAutocomplete>
                                     </div>
                                     <br />
+
+                                    <span className="form__form-group-label">Access Password</span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="password"
+                                            name="password"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Enter Password"
+                                            className="input-without-border-radius"
+                                            value={this.state.password}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
                                 </div>
 
                                 <div className="account__btns col-8 offset-2">
@@ -447,7 +488,6 @@ export class Drillers extends React.Component {
                                 </div>
                                 <br />
                                 <div className="panel-body" >
-
                                     <ReactDatatable
                                         config={this.config}
                                         records={this.state.admins}
@@ -457,13 +497,10 @@ export class Drillers extends React.Component {
                                         onChange={this.tableChangeHandler} />
                                 </div>
                             </>
-
                         </CardBody>
-
                     </Card>
                 </>
             </div >
-
         )
     }
 }
