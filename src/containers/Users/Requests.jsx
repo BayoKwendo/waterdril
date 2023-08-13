@@ -19,7 +19,7 @@ import {
 import PlacesAutocomplete from 'react-places-autocomplete';
 
 
-export class Geologists extends React.Component {
+export class RequestWater extends React.Component {
     constructor(props) {
         super(props);
 
@@ -36,23 +36,6 @@ export class Geologists extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
-            {
-                key: "msisdn",
-                TrOnlyClassName: 'tsc',
-                text: "Contacts",
-                className: "tsc",
-                align: "left"
-            },
-
-            {
-                key: "id_number",
-                TrOnlyClassName: 'tsc',
-                text: "ID Number",
-                className: "tsc",
-                align: "left"
-            },
-
             {
                 key: "location",
                 TrOnlyClassName: 'tsc',
@@ -62,25 +45,45 @@ export class Geologists extends React.Component {
             },
 
             {
-                key: "amount",
+                key: "user_id",
                 TrOnlyClassName: 'tsc',
-                text: "Pricing",
+                text: "Service ID",
                 className: "tsc",
                 align: "left"
             },
 
             {
-                key: "lat",
+                key: "msisdn",
                 TrOnlyClassName: 'tsc',
-                text: "Latitude",
+                text: "User Contacts",
                 className: "tsc",
                 align: "left"
             },
-
             {
-                key: "longitude",
+                key: "id_number",
                 TrOnlyClassName: 'tsc',
-                text: "Longitude",
+                text: "User ID Number",
+                className: "tsc",
+                align: "left"
+            },
+            {
+                key: "amount_paid",
+                TrOnlyClassName: 'tsc',
+                text: "Amount Paid",
+                className: "tsc",
+                align: "left"
+            },
+            {
+                key: "amount_to_pay",
+                TrOnlyClassName: 'tsc',
+                text: "Amount to Pay",
+                className: "tsc",
+                align: "left"
+            },
+            {
+                key: "full_amount",
+                TrOnlyClassName: 'tsc',
+                text: "Total Amount",
                 className: "tsc",
                 align: "left"
             },
@@ -96,16 +99,16 @@ export class Geologists extends React.Component {
                 cell: record => {
                     return (
                         <Fragment className="center"  >
-                            {record.status === 1 ?
+                            {record.status === 0 ?
                                 <div>
                                     <span class="badge-danger" style={{ borderRadius: "5px", padding: "2px" }}>
-                                        Booked
+                                     Pending
                                     </span>
                                 </div>
                                 : null}
-                            {record.status === 0 ?
+                            {record.status === 1 ?
                                 <span class="badge-success" style={{ borderRadius: "5px", padding: "2px" }}>
-                                    Available
+                                    Success
                                 </span>
                                 : null}
                         </Fragment >
@@ -115,13 +118,13 @@ export class Geologists extends React.Component {
 
 
             {
-                key: "created_on",
+                key: "created_at",
                 TrOnlyClassName: 'tsc',
                 text: "Created On",
                 className: "tsc",
                 align: "left"
             },
-            
+
         ];
 
 
@@ -186,7 +189,7 @@ export class Geologists extends React.Component {
 
     getData = (queryString = "") => {
 
-        let url = baseURL + `users?role=geologist&${queryString}`;
+        let url = baseURL + `service_request`;
         this.setState({
             isLoading: true,
         })
@@ -477,12 +480,12 @@ export class Geologists extends React.Component {
                             < >
                                 <div className="row">
                                     <div className="col-md-8">
-                                        <h5>Geologist</h5>
+                                        <h5>Service Requests</h5>
                                     </div>
-                                    <div className="col-md-4 float-right">
+                                    {/* <div className="col-md-4 float-right">
                                         <button className="btn btn-primary" onClick={this.isOpen} > Add New Geologist
                                         </button>
-                                    </div>
+                                    </div> */}
                                 </div>
                                 <br />
                                 <div className="panel-body" >

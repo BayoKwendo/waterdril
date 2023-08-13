@@ -83,6 +83,35 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
+
+            // deno-lint-ignore no-dupe-keys
+            {
+                key: "status",
+                TrOnlyClassName: 'tsc',
+                text: "Status",
+                TrOnlyClassName: 'cell',
+
+                className: "cell",
+                align: "left",
+                cell: record => {
+                    return (
+                        <Fragment className="center"  >
+                            {record.status === 1 ?
+                                <div>
+                                    <span class="badge-danger" style={{ borderRadius: "5px", padding: "2px" }}>
+                                        Booked
+                                    </span>
+                                </div>
+                                : null}
+                            {record.status === 0 ?
+                                <span class="badge-success" style={{ borderRadius: "5px", padding: "2px" }}>
+                                    Available
+                                </span>
+                                : null}
+                        </Fragment >
+                    );
+                }
+            },
             {
                 key: "created_on",
                 TrOnlyClassName: 'tsc',

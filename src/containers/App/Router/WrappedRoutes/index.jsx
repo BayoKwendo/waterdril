@@ -6,6 +6,7 @@ import {  Drillers } from '../../../Users/Drillers';
 import Default from '../../../Dashboards/Default';
 import { Services } from '../../../Users/Services';
 import { Geologists } from '../../../Users/Geologists';
+import { RequestWater } from '../../../Users/Requests';
 
 
 export default () => (
@@ -16,9 +17,12 @@ export default () => (
       <Route path="/dashboard" component={Default} />
 
 
+      
+
       <Route path="/services" component={Services} />
 
-   
+      <Route path="/request_water" component={RequestWater} />
+
       <Route path="/test_units" component={Drillers} />
 
       <Route path="/geologist" component={Geologists} />
