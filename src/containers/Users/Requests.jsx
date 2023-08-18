@@ -102,13 +102,18 @@ export class RequestWater extends React.Component {
                             {record.status === 0 ?
                                 <div>
                                     <span class="badge-danger" style={{ borderRadius: "5px", padding: "2px" }}>
-                                     Pending
+                                        Pending
                                     </span>
                                 </div>
                                 : null}
                             {record.status === 1 ?
                                 <span class="badge-success" style={{ borderRadius: "5px", padding: "2px" }}>
-                                    Success
+                                    Accepted
+                                </span>
+                                : null}
+                            {record.status === 2 ?
+                                <span class="badge-" style={{ borderRadius: "5px", padding: "2px" }}>
+                                    Closed
                                 </span>
                                 : null}
                         </Fragment >
@@ -124,6 +129,45 @@ export class RequestWater extends React.Component {
                 className: "tsc",
                 align: "left"
             },
+            {
+                key: "action",
+                text: "Options",
+                TrOnlyClassName: 'cell',
+                className: "cell",
+                width: 250,
+                sortable: false,
+                cell: record => {
+                    return (
+                        <Fragment className="center" >
+                            {record.status !== 2 ?
+
+                                <button className="btn btn-primary btn-sm"
+                                    title="EditCategory"
+                                    style={
+                                        { marginRight: '10px' }}
+                                    onClick={() => { this.isOpenEdit(record) }} >
+
+                                    Edit
+                                </button>
+                                : null}
+
+
+                            {/* <button className="btn btn-danger btn-sm"
+                                title="Delete Category"
+                                style={
+                                    { marginRight: '10px' }}
+
+                                onClick={() => { if (window.confirm('Are you sure you want to delete this user?')) onSubmitDelete(record) }} >
+
+                                Delete
+                            </button> */}
+
+
+                        </Fragment>
+                    );
+                }
+            }
+
 
         ];
 
@@ -221,14 +265,9 @@ export class RequestWater extends React.Component {
     onSubmit = e => {
         e.preventDefault();
         let formData = {
-            "name": this.state.name,
-            "id_number": this.state.id_number,
-            "msisdn": this.state.msisdn.toString().replaceAll("+", ""),
-            "location": this.state.address,
-            "lat": this.state.latitude,
-            "long": this.state.longitude,
+            "id_number": this.state.record_id,
             "amount": this.state.amount,
-            "password": this.state.password,
+            "transaction_id": this.state.transaction_id,
             "role": "geologist",
         }
 
@@ -236,7 +275,7 @@ export class RequestWater extends React.Component {
             isLoading: true,
         })
         // alert(formData)
-        axios.post(baseURL + 'user', formData, CONFIG)
+        axios.post(baseURL + 'reconcile', formData, CONFIG)
             .then((response) => {
                 // console.log("testtesttsttesttest ",  )
                 successToast("Success")
@@ -258,18 +297,7 @@ export class RequestWater extends React.Component {
         this.setState({
             isOpen: true,
             IsEdit: true,
-            record_id: e.transaction_id,
-            amount: e.amount,
-            bank_name: e.bank_name,
-            account_name: e.account_name,
-            account_number: e.account_number,
-            branch: e.branch,
-            swift_code: e.swift_code,
-            address: e.address,
-            country: e.country,
-            currency: e.invoice_currency,
-            account_type: e.account_type,
-            company_id: Number(this.state.company_id)
+            record_id: e.id_number,
         })
     }
 
@@ -327,7 +355,7 @@ export class RequestWater extends React.Component {
                     >
                         <MDBCloseIcon onClick={this.closeModal} />
 
-                        <h6><b>{"Add New Geologist"}</b></h6>
+                        <h6><b>{"Reconcile Transaction"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -336,22 +364,22 @@ export class RequestWater extends React.Component {
 
                                 <div className="form__form-group col-10 offset-1">
 
-                                    <span className="form__form-group-label">Name</span>
+                                    <span className="form__form-group-label">Transaction ID</span>
 
                                     <div className="form__form-group-field">
                                         <Form.Control
                                             autoFocus
                                             type="text"
-                                            name="name"
+                                            name="transaction_id"
                                             style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
                                             placeholder="Name"
                                             className="input-without-border-radius"
-                                            value={this.state.name}
+                                            value={this.state.transaction_id}
                                             onChange={this.handleChange}
                                         />
                                     </div>
                                     <br />
-                                    <span className="form__form-group-label">Pricing </span>
+                                    <span className="form__form-group-label">AMount </span>
                                     <div className="form__form-group-field">
                                         <Form.Control
                                             autoFocus
@@ -365,103 +393,9 @@ export class RequestWater extends React.Component {
                                         />
                                     </div>
                                     <br />
-
-                                    <span className="form__form-group-label">ID Number</span>
-                                    <div className="form__form-group-field">
-                                        <Form.Control
-                                            autoFocus
-                                            type="text"
-                                            name="id_number"
-                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                                            placeholder="Enter Contact ID Number"
-                                            className="input-without-border-radius"
-                                            value={this.state.id_number}
-                                            onChange={this.handleChange}
-                                        />
-                                    </div>
                                     <br />
 
 
-                                    <span className="form__form-group-label">Phone Number</span>
-                                    <div className="form__form-group-field">
-                                        <div className="form__form-group-icon">
-                                            <PhoneOutlineIcon />
-                                        </div>
-                                        <Input
-                                            country="KE"
-                                            international
-                                            withCountryCallingCode
-                                            required
-                                            className="form-control"
-                                            placeholder="Enter Phone"
-                                            name="phone_number"
-                                            id="input"
-                                            value={this.state.msisdn}
-                                            onChange={value => this.setState({ msisdn: value })} />
-                                    </div>
-                                    <br />
-
-                                    <span className="form__form-group-label">Location</span>
-
-                                    <div className="form__form-group-field">
-                                        <PlacesAutocomplete
-                                            value={this.state.address}
-                                            onChange={this.handleChangeAddress}
-                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                                            onSelect={this.handleSelect}>
-                                            {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
-                                                <div>
-                                                    <Form.Control
-                                                        autoFocus
-                                                        style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                                                        className="input-without-border-radius"
-                                                        value={this.state.address}
-                                                        {...getInputProps({
-                                                            // placeholder: 'Search Places ...',
-                                                            className: 'location-search-input',
-                                                        })}
-                                                    />
-                                                    <div className="autocomplete-dropdown-container">
-                                                        {loading && <div>Loading...</div>}
-                                                        {suggestions.map(suggestion => {
-                                                            const className = suggestion.active
-                                                                ? 'suggestion-item--active'
-                                                                : 'suggestion-item';
-                                                            // inline style for demonstration purpose
-                                                            const style = suggestion.active
-                                                                ? { backgroundColor: '#fafafa', cursor: 'pointer' }
-                                                                : { backgroundColor: '#ffffff', cursor: 'pointer' };
-                                                            return (
-                                                                <div
-                                                                    {...getSuggestionItemProps(suggestion, {
-                                                                        className,
-                                                                        style,
-                                                                    })}
-                                                                >
-                                                                    <span>{suggestion.description}</span>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </PlacesAutocomplete>
-                                    </div>
-                                    <br />
-                                    <span className="form__form-group-label">Access Password</span>
-                                    <div className="form__form-group-field">
-                                        <Form.Control
-                                            autoFocus
-                                            type="password"
-                                            name="password"
-                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                                            placeholder="Enter Password"
-                                            className="input-without-border-radius"
-                                            value={this.state.password}
-                                            onChange={this.handleChange}
-                                        />
-                                    </div>
-                                    <br />
                                 </div>
 
                                 <div className="account__btns col-8 offset-2">
