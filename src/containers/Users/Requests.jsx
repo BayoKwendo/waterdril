@@ -74,16 +74,17 @@ export class RequestWater extends React.Component {
                 align: "left"
             },
             {
-                key: "amount_to_pay",
-                TrOnlyClassName: 'tsc',
-                text: "Amount to Pay",
-                className: "tsc",
-                align: "left"
-            },
-            {
                 key: "full_amount",
                 TrOnlyClassName: 'tsc',
                 text: "Total Amount",
+                className: "tsc",
+                align: "left"
+            },
+            
+            {
+                key: "amount_to_pay",
+                TrOnlyClassName: 'tsc',
+                text: "Full Amount to Pay",
                 className: "tsc",
                 align: "left"
             },
