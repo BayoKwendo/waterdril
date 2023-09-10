@@ -58,7 +58,31 @@ export class Services extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-          
+            {
+                key: "action",
+                text: "Options",
+                TrOnlyClassName: 'cell',
+                className: "cell",
+                width: 250,
+                sortable: false,
+                cell: record => {
+                    return (
+                        <Fragment className="center" >
+                            <button className="btn btn-primary btn-sm"
+                                style={
+                                    { marginRight: '10px' }}
+                                onClick={() => { this.isOpen(record) }}
+
+                            >
+
+                                Edit
+                            </button>
+
+                        </Fragment>
+                    );
+                }
+            }
+
 
         ];
 
@@ -93,6 +117,7 @@ export class Services extends React.Component {
         };
         this.state = {
             isPageLoad: true,
+            isOpen: false,
         }
     }
     componentDidMount() {
@@ -106,7 +131,7 @@ export class Services extends React.Component {
             isLoading: true,
         })
         axios.all([
-            axios.post(url, CONFIG)
+            axios.get(url, CONFIG)
         ]).then(axios.spread((branchResponse) => {
             this.setState({
                 admins: branchResponse.data.data,
@@ -117,7 +142,56 @@ export class Services extends React.Component {
 
 
 
+    handleChange = (e) => {
+        this.setState({ [e.target.name]: e.target.value });
+    }
 
+
+
+    isOpen = e => {
+        this.setState({
+            isOpen: true,
+            name: e.name,
+            id: e.id,
+            IsEdit: false
+        })
+    }
+
+    closeModal = e => {
+        this.setState({
+            isOpen: false,
+            IsEdit: false
+        })
+    }
+
+
+
+    onSubmit = e => {
+        e.preventDefault();
+        let formData = {
+            "name": this.state.name,
+            "id": this.state.id
+        }
+        this.setState({
+            isLoading: true,
+        })
+        // alert(formData)
+        axios.post(baseURL + 'service', formData, CONFIG)
+            .then((response) => {
+                // console.log("testtesttsttesttest ",  )
+                successToast("Success")
+                this.getData("")
+                this.setState({
+                    isLoading: false,
+                    isOpen: false
+                })
+            }).catch(error => {
+                errorToast(error.response.data.message)
+                this.setState({
+                    isLoading: false,
+                });
+            });
+    }
 
     render() {
 
@@ -128,11 +202,68 @@ export class Services extends React.Component {
 
                     < Card >
                         <CardBody >
+                            <Modal
+                                isOpen={this.state.isOpen}
+                                onRequestClose={e => {
+                                    this.closeModal(e)
+                                }}
+                                contentLabel="My dialog"
+                                className="mymodal"
+                                onAfterOpen={() => {
+                                    document.body.style.overflow = 'hidden';
+                                }}
+                                onAfterClose={() => {
+                                    document.body.removeAttribute('style');
+                                }}
+                                overlayClassName="myoverlay"
+                                closeTimeoutMS={500}
+                            >
+                                <MDBCloseIcon onClick={this.closeModal} />
+
+                                <h6><b>{"Edit Service"}</b></h6>
+                                <br />
+                                <br />
+                                <>
+                                    <Form className="form login-form" onSubmit={this.onSubmit}>
+                                        {/*n  <h5><b>Get Agent Number</b></h5> */}
+
+                                        <div className="form__form-group col-10 offset-1">
+
+                                            <span className="form__form-group-label">Test Unit Brand Name</span>
+
+                                            <div className="form__form-group-field">
+                                                <Form.Control
+                                                    autoFocus
+                                                    type="text"
+                                                    name="name"
+                                                    style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                                    placeholder="Name"
+                                                    className="input-without-border-radius"
+                                                    value={this.state.name}
+                                                    onChange={this.handleChange}
+                                                />
+                                            </div>
+                                            <br />
+
+                                            <br />
+                                        </div>
+
+                                        <div className="account__btns col-8 offset-2">
+                                            <Button className="account__btn" type='submit' color="success"> {
+                                                this.state.isLoading ? "Please wait..." : "Update"
+                                            }</Button>
+                                        </div>
+
+                                    </Form>
+                                </>
+                            </Modal>
+
+
                             < >
 
                                 <div className="row">
                                     <div className="col-md-6">
-                                        <h3>Services Offered</h3>
+                                        <h5>Services Offered</h5>
                                     </div>
 
                                 </div>

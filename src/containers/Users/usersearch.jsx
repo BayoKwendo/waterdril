@@ -73,13 +73,10 @@ export class UserSearch extends React.Component {
                 isLoading: false
             });
         });
-
-
     }
-
-
+    x
     componentDidMount() {
-        axios.get(baseURL + 'smscount', CONFIG).then((response) => { this.setState({counts: response.data.total}) }).catch(error => { })
+        axios.get(baseURL + 'smscount', CONFIG).then((response) => { this.setState({ counts: response.data.total }) }).catch(error => { })
     }
     handleChange = (e) => {
         this.setState({ [e.target.name]: e.target.value });
@@ -149,10 +146,8 @@ export class UserSearch extends React.Component {
                         </Col>
                     </>
                 }
-
             </div>
         )
-
     }
-
 }
+

@@ -118,32 +118,31 @@ export class Drillers extends React.Component {
                 text: "Created On",
                 className: "tsc",
                 align: "left"
+            },
+            {
+                key: "action",
+                text: "Options",
+                TrOnlyClassName: 'cell',
+                className: "cell",
+                width: 250,
+                sortable: false,
+                cell: record => {
+                    return (
+                        <Fragment className="center" >
+                            <button className="btn btn-primary btn-sm"
+                                style={
+                                    { marginRight: '10px' }}
+                                onClick={() => { this.isOpenEdit(record) }}
+
+                            >
+
+                                Edit
+                            </button>
+
+                        </Fragment>
+                    );
+                }
             }
-            // ,
-            // {
-            //     key: "action",
-            //     text: "Options",
-            //     TrOnlyClassName: 'cell',
-            //     className: "cell",
-            //     width: 250,
-            //     sortable: false,
-            //     cell: record => {
-            //         return (
-            //             <Fragment className="center" >
-            //                 <button className="btn btn-primary btn-sm"
-            //                     style={
-            //                         { marginRight: '10px' }}
-            //                     onClick={() => { this.isOpenEdit(record) }}
-
-            //                 >
-
-            //                     Edit
-            //                 </button>
-
-            //             </Fragment>
-            //         );
-            //     }
-            // }
         ];
 
 
@@ -280,22 +279,53 @@ export class Drillers extends React.Component {
     }
 
 
+
+    onEditSubmit = e => {
+        e.preventDefault();
+        let formData = {
+            "name": this.state.name,
+            "id_number": this.state.id_number,
+            "msisdn": this.state.msisdn.toString().replaceAll("+", ""),
+            "location": this.state.address,
+            "lat": this.state.latitude,
+            "long": this.state.longitude,
+            "role": "test_pump",
+            "id" : this.state.id,
+            "amount": this.state.amount,
+            "password": this.state.password
+        }
+
+        this.setState({
+            isLoading: true,
+        })
+        // alert(formData)
+        axios.post(baseURL + 'user_edit', formData, CONFIG)
+            .then((response) => {
+                successToast("Success")
+                this.getData("")
+                this.setState({
+                    isLoading: false,
+                    isOpenEdit: false
+                })
+            }).catch(error => {
+                errorToast(error.response.data.message)
+                this.setState({
+                    isLoading: false,
+                });
+            });
+    }
+
     isOpenEdit = e => {
         this.setState({
-            isOpen: true,
+            isOpenEdit: true,
             IsEdit: true,
             record_id: e.transaction_id,
             amount: e.amount,
-            bank_name: e.bank_name,
-            account_name: e.account_name,
-            account_number: e.account_number,
-            branch: e.branch,
-            swift_code: e.swift_code,
-            address: e.address,
-            country: e.country,
-            currency: e.invoice_currency,
-            account_type: e.account_type,
-            company_id: Number(this.state.company_id)
+            name: e.name,
+            msisdn: e.msisdn,
+            id_number: e.id_number,
+            id: e.id,
+            password: e.password
         })
     }
 
@@ -314,6 +344,11 @@ export class Drillers extends React.Component {
         })
     }
 
+    closeModalEdit = e => {
+        this.setState({
+            isOpenEdit: false,
+        })
+    }
     handleSelect = address => {
         this.setState({ address: address });
         geocodeByAddress(address)
@@ -352,7 +387,6 @@ export class Drillers extends React.Component {
                         closeTimeoutMS={500}
                     >
                         <MDBCloseIcon onClick={this.closeModal} />
-
                         <h6><b>{"Add New Test Unit"}</b></h6>
                         <br />
                         <br />
@@ -501,6 +535,116 @@ export class Drillers extends React.Component {
                             </Form>
                         </>
                     </Modal>
+
+
+                    <Modal
+                        isOpen={this.state.isOpenEdit}
+                        onRequestClose={e => {
+                            this.closeModalEdit(e)
+                        }}
+                        contentLabel="My dialog"
+                        className="mymodal"
+                        onAfterOpen={() => {
+                            document.body.style.overflow = 'hidden';
+                        }}
+                        onAfterClose={() => {
+                            document.body.removeAttribute('style');
+                        }}
+                        overlayClassName="myoverlay"
+                        closeTimeoutMS={500}>
+                        <MDBCloseIcon onClick={this.closeModalEdit} />
+                        <h6><b>{"Edit New Test Unit"}</b></h6>
+                        <br />
+                        <br />
+                        <>
+                            <Form className="form login-form" onSubmit={this.onEditSubmit}>
+                                <div className="form__form-group col-10 offset-1">
+                                    <span className="form__form-group-label">Test Unit Brand Name</span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="text"
+                                            name="name"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Name"
+                                            className="input-without-border-radius"
+                                            value={this.state.name}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
+                                    <span className="form__form-group-label">Pricing </span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="number"
+                                            name="amount"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Enter Amount"
+                                            className="input-without-border-radius"
+                                            value={this.state.amount}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
+                                    <span className="form__form-group-label">ID Number of Main Contact</span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="text"
+                                            name="id_number"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Enter Contact ID Number"
+                                            className="input-without-border-radius"
+                                            value={this.state.id_number}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
+                                    <span className="form__form-group-label">Phone Number of Main Contact</span>
+                                    <div className="form__form-group-field">
+                                        <div className="form__form-group-icon">
+                                            <PhoneOutlineIcon />
+                                        </div>
+                                        <Input
+                                            country="KE"
+                                            international
+                                            withCountryCallingCode
+                                            required
+                                            className="form-control"
+                                            placeholder="Enter Phone"
+                                            name="phone_number"
+                                            id="input"
+                                            value={this.state.msisdn}
+                                            onChange={value => this.setState({ msisdn: value })} />
+                                    </div>
+                                    <br />
+                                    <span className="form__form-group-label">Access Password</span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="password"
+                                            name="password"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Enter Password"
+                                            className="input-without-border-radius"
+                                            value={this.state.password}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
+                                </div>
+
+                                <div className="account__btns col-8 offset-2">
+                                    <Button className="account__btn" type='submit' color="success"> {
+                                        this.state.isLoading ? "Please wait..." : "Add"
+                                    }</Button>
+                                </div>
+
+                            </Form>
+                        </>
+                    </Modal>
+
 
 
                     < Card >
