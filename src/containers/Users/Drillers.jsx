@@ -138,7 +138,15 @@ export class Drillers extends React.Component {
 
                                 Edit
                             </button>
+                            <button className="btn btn-primary btn-sm"
+                                style={
+                                    { marginRight: '10px' }}
+                                onClick={() => { this.isOpenEditPhoto(record) }}
 
+                            >
+
+                                Update Logo
+                            </button>
                         </Fragment>
                     );
                 }
@@ -192,7 +200,7 @@ export class Drillers extends React.Component {
             description: "",
             debit_account: 0,
             folio: "PETTY CASH",
-
+            isOpenEditPhoto: false,
             status: "",
             data: [],
         };
@@ -290,7 +298,7 @@ export class Drillers extends React.Component {
             "lat": this.state.latitude,
             "long": this.state.longitude,
             "role": "test_pump",
-            "id" : this.state.id,
+            "id": this.state.id,
             "amount": this.state.amount,
             "password": this.state.password
         }
@@ -315,6 +323,42 @@ export class Drillers extends React.Component {
             });
     }
 
+    handleLogo = event => {
+        console.log("FETCHER", event.target.files);
+        this.setState({
+            logo: event.target.files[0]
+        });
+    };
+
+
+
+    onEditSubmithoto = e => {
+        e.preventDefault();
+
+        var data = new FormData();
+        data.append("applicantion_form", this.state.logo);
+        data.append("id", this.state.id);
+
+        this.setState({
+            isLoading: true,
+        })
+        // alert(formData)
+        axios.post(baseURL + 'user_edit_photo', data, CONFIG)
+            .then((response) => {
+                successToast("Success")
+                this.getData("")
+                this.setState({
+                    isLoading: false,
+                    isOpenEditPhoto: false
+                })
+            }).catch(error => {
+                errorToast(error.response.data.message)
+                this.setState({
+                    isLoading: false,
+                });
+            });
+    }
+
     isOpenEdit = e => {
         this.setState({
             isOpenEdit: true,
@@ -329,6 +373,13 @@ export class Drillers extends React.Component {
         })
     }
 
+    isOpenEditPhoto = e => {
+        this.setState({
+            isOpenEditPhoto: true,
+            id: e.id,
+            password: e.password
+        })
+    }
 
     isOpen = e => {
         this.setState({
@@ -344,6 +395,13 @@ export class Drillers extends React.Component {
         })
     }
 
+
+
+    closeModalEditPhoto = e => {
+        this.setState({
+            isOpenEditPhoto: false,
+        })
+    }
     closeModalEdit = e => {
         this.setState({
             isOpenEdit: false,
@@ -645,6 +703,57 @@ export class Drillers extends React.Component {
                         </>
                     </Modal>
 
+
+
+                    <Modal
+                        isOpen={this.state.isOpenEditPhoto}
+                        onRequestClose={e => {
+                            this.closeModalEditPhoto(e)
+                        }}
+                        contentLabel="My dialog"
+                        className="mymodal"
+                        onAfterOpen={() => {
+                            document.body.style.overflow = 'hidden';
+                        }}
+                        onAfterClose={() => {
+                            document.body.removeAttribute('style');
+                        }}
+                        overlayClassName="myoverlay"
+                        closeTimeoutMS={500}>
+                        <MDBCloseIcon onClick={this.closeModalEditPhoto} />
+                        <h6><b>{"Test Unit Logo"}</b></h6>
+                        <br />
+                        <br />
+                        <>
+                            <Form className="form login-form" onSubmit={this.onEditSubmithoto}>
+                                <div className="form__form-group col-10 offset-1">
+                                    <span className="form__form-group-label">Update Logo</span>
+                                    <div className="form__form-group-field">
+                                        <input
+                                            // className="csv-input"
+                                            type="file"
+                                            ref={input => {
+                                                this.filesInput = input;
+                                            }}
+                                            name="file"
+                                            required
+                                            customHeight
+                                            placeholder={null}
+                                            onChange={this.handleLogo}
+                                        />
+                                    </div>
+                                    <br />
+                                </div>
+
+                                <div className="account__btns col-8 offset-2">
+                                    <Button className="account__btn" type='submit' color="success"> {
+                                        this.state.isLoading ? "Please wait..." : "Upload"
+                                    }</Button>
+                                </div>
+
+                            </Form>
+                        </>
+                    </Modal>
 
 
                     < Card >
