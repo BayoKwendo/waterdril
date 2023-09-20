@@ -21,7 +21,8 @@ const SidebarContent = ({
      
       <SidebarLink title="Service Requests" route="/request_water" icon="users" onClick={hideSidebar} />
       
-
+      <SidebarLink title="User Profile" route="/user_profile" icon="users" onClick={hideSidebar} />
+      
       <ul className="sidebar__block">
         <SidebarCategory title="Layout" icon="layers" sidebarCollapse={sidebarCollapse}>
           <button className="sidebar__link" type="button" onClick={changeToLight}>

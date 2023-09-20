@@ -85,7 +85,7 @@ const LogIn = () => {
 
           localStorage.setItem("USER", response.data.user)
           localStorage.setItem("token", response.data.access_token)
-          localStorage.setItem("mobipesa_name", response.data.access_token);
+          localStorage.setItem("msisdn", response.data.user.msisdn);
           isLoggedIn(true)
 
           successToast("Login Success! Redirecting....")
