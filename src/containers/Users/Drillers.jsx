@@ -147,6 +147,26 @@ export class Drillers extends React.Component {
 
                                 Update Logo
                             </button>
+
+                            <button className="btn btn-danger btn-sm"
+                                title="Delete Category"
+                                style={
+                                    { marginRight: '10px' }}
+
+                                onClick={() => { if (window.confirm('Are you sure you want to deactive this test unit?')) this.onSubmitDelete(record) }} >
+
+                                Deactivate
+                            </button>
+                            {/* 
+                            <button className="btn btn-danger btn-sm"
+                                style={
+                                    { marginRight: '10px' }}
+                                onClick={() => { this.isOpenEditPhoto(record) }}
+
+                            >
+
+                                Deactivate
+                            </button> */}
                         </Fragment>
                     );
                 }
@@ -251,6 +271,32 @@ export class Drillers extends React.Component {
         this.getData(queryString)
     }
 
+
+    onSubmitDelete = e => {
+        let formData = {
+            "id": e.id,
+            "status": 'inactive'
+        }
+
+        this.setState({
+            isLoading: true,
+        })
+        // alert(formData)
+        axios.post(baseURL + 'deactivate_user', formData, CONFIG)
+            .then((response) => {
+                // console.log("testtesttsttesttest ",  )
+                successToast("Success")
+                this.getData("")
+                this.setState({
+                    isLoading: false,
+                })
+            }).catch(error => {
+                errorToast(error.response.data.message)
+                this.setState({
+                    isLoading: false,
+                });
+            });
+    }
     onSubmit = e => {
         e.preventDefault();
         let formData = {
