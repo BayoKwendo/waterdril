@@ -177,7 +177,7 @@ export class Services extends React.Component {
 
     getData = () => {
 
-        let url = baseURL + `service`;
+        let url = baseURL + `service_portal`;
         this.setState({
             isLoading: true,
         })
