@@ -15,14 +15,18 @@ const SidebarContent = ({
     <div className="sidebar__content">
 
       <SidebarLink title="Dashboard" route="/dashboard" icon="home" onClick={hideSidebar} />
+      <SidebarLink title="Customers" route="/customer" icon="users" onClick={hideSidebar} />
+
       <SidebarLink title="Services" route="/services" icon="briefcase" onClick={hideSidebar} />
       <SidebarLink title="Test Units" route="/test_units" icon="briefcase" onClick={hideSidebar} />
       <SidebarLink title="Geologist" route="/geologist" icon="users" onClick={hideSidebar} />
-     
+
+      
       <SidebarLink title="Service Requests" route="/request_water" icon="users" onClick={hideSidebar} />
       
       <SidebarLink title="User Profile" route="/user_profile" icon="users" onClick={hideSidebar} />
       
+
       <ul className="sidebar__block">
         <SidebarCategory title="Layout" icon="layers" sidebarCollapse={sidebarCollapse}>
           <button className="sidebar__link" type="button" onClick={changeToLight}>
