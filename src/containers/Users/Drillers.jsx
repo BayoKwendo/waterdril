@@ -185,7 +185,7 @@ export class Drillers extends React.Component {
             language: {
                 loading_text: "Please be patient while data loads...",
                 no_data_text: "No data was found",
-                filter: "Enter date (YYYY-MM-DD)",
+                filter: "Search here...",
                 pagination: {
                     next: <span>&#9658;</span>,
                     previous: <span>&#9668;</span>
