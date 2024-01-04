@@ -101,7 +101,7 @@ export class Customers extends React.Component {
         this.config = {
             key_column: "tsc",
             length_menu: [100, 200, 500],
-            show_filter: false,
+            show_filter: true,
             show_pagination: true,
             pagination: 'advance',
             page_size: 100,
