@@ -242,7 +242,7 @@ export class Drillers extends React.Component {
 
     getData = (queryString = "") => {
 
-        let url = baseURL + `users?role=test_pump&${queryString}`;
+        let url = baseURL + `users?role=${localStorage.getItem('unit_type')}&${queryString}`;
         this.setState({
             isLoading: true,
         })
@@ -306,7 +306,7 @@ export class Drillers extends React.Component {
             "location": this.state.address,
             "lat": this.state.latitude,
             "long": this.state.longitude,
-            "role": "test_pump",
+            "role": localStorage.getItem('unit_type'),
             "amount": this.state.amount,
             "password": this.state.password
         }
@@ -343,7 +343,7 @@ export class Drillers extends React.Component {
             "location": this.state.address,
             "lat": this.state.latitude,
             "long": this.state.longitude,
-            "role": "test_pump",
+            "role": localStorage.getItem('unit_type'),
             "id": this.state.id,
             "amount": this.state.amount,
             "password": this.state.password
@@ -491,7 +491,7 @@ export class Drillers extends React.Component {
                         closeTimeoutMS={500}
                     >
                         <MDBCloseIcon onClick={this.closeModal} />
-                        <h6><b>{"Add New Test Unit"}</b></h6>
+                        <h6><b>{"Add " + localStorage.getItem('unit_name')}</b></h6>
                         <br />
                         <br />
                         <>
@@ -500,7 +500,7 @@ export class Drillers extends React.Component {
 
                                 <div className="form__form-group col-10 offset-1">
 
-                                    <span className="form__form-group-label">Test Unit Brand Name</span>
+                                    <span className="form__form-group-label">{localStorage.getItem('unit_name')}</span>
 
                                     <div className="form__form-group-field">
                                         <Form.Control
@@ -657,13 +657,13 @@ export class Drillers extends React.Component {
                         overlayClassName="myoverlay"
                         closeTimeoutMS={500}>
                         <MDBCloseIcon onClick={this.closeModalEdit} />
-                        <h6><b>{"Edit New Test Unit"}</b></h6>
+                        <h6><b>{"Edit " + localStorage.getItem('unit_name')}</b></h6>
                         <br />
                         <br />
                         <>
                             <Form className="form login-form" onSubmit={this.onEditSubmit}>
                                 <div className="form__form-group col-10 offset-1">
-                                    <span className="form__form-group-label">Test Unit Brand Name</span>
+                                    <span className="form__form-group-label">{localStorage.getItem('unit_name')}</span>
                                     <div className="form__form-group-field">
                                         <Form.Control
                                             autoFocus
@@ -767,7 +767,7 @@ export class Drillers extends React.Component {
                         overlayClassName="myoverlay"
                         closeTimeoutMS={500}>
                         <MDBCloseIcon onClick={this.closeModalEditPhoto} />
-                        <h6><b>{"Test Unit Logo"}</b></h6>
+                        <h6><b>{localStorage.getItem('unit_name') + " Logo"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -807,10 +807,15 @@ export class Drillers extends React.Component {
                             < >
                                 <div className="row">
                                     <div className="col-md-8">
-                                        <h5>Test Units</h5>
+                                        <h5>{localStorage.getItem('unit_name')}</h5>
                                     </div>
                                     <div className="col-md-4 float-right">
-                                        <button className="btn btn-primary" onClick={this.isOpen} > Add Test Unit
+                                        <button className="btn btn-primary" onClick={this.isOpen} > Add {localStorage.getItem('unit_name')}
+                                        </button>
+                                    </div>
+
+                                    <div className="col-md-4 float-right">
+                                        <button className="btn btn-primary" onClick={e => window.location.href = "services"} > Back
                                         </button>
                                     </div>
                                 </div>

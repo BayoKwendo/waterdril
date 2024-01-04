@@ -61,7 +61,7 @@ export class Customers extends React.Component {
                 align: "left"
             },
 
-           
+
             {
                 key: "created_on",
                 TrOnlyClassName: 'tsc',
@@ -74,33 +74,23 @@ export class Customers extends React.Component {
                 text: "Options",
                 TrOnlyClassName: 'cell',
                 className: "cell",
-                width: 250,
                 sortable: false,
                 cell: record => {
                     return (
                         <Fragment className="center" >
-                            <button className="btn btn-primary btn-sm"
+                            <button className="btn-warning btn-sm"
                                 style={
                                     { marginRight: '10px' }}
                                 onClick={() => { this.isOpenEdit(record) }}
-
                             >
-
-                                Edit
+                                Update
                             </button>
-                        
-
-                
-                            {/* 
-                            <button className="btn btn-danger btn-sm"
+                            <button className="btn-danger btn-sm"
                                 style={
                                     { marginRight: '10px' }}
-                                onClick={() => { this.isOpenEditPhoto(record) }}
-
-                            >
-
-                                Deactivate
-                            </button> */}
+                                onClick={() => { if (window.confirm('Are you sure you want to delete this user?')) this.onEditDelete(record) }} >
+                                Delete
+                            </button>
                         </Fragment>
                     );
                 }
@@ -263,6 +253,32 @@ export class Customers extends React.Component {
             });
     }
 
+
+
+
+    onEditDelete = e => {
+        let formData = {
+            "id": e.id,
+        }
+
+        this.setState({
+            isLoading: true,
+        })
+        // alert(formData)
+        axios.post(baseURL + 'update_customer', formData, CONFIG)
+            .then((resp) => {
+                successToast("Success")
+                this.getData("")
+                this.setState({
+                    isLoading: false,
+                })
+            }).catch(error => {
+                errorToast(error.response.data.message)
+                this.setState({
+                    isLoading: false,
+                });
+            });
+    }
 
 
     onEditSubmit = e => {
@@ -448,7 +464,7 @@ export class Customers extends React.Component {
                                     <br />
 
 
-                                
+
 
                                     <span className="form__form-group-label">ID Number</span>
                                     <div className="form__form-group-field">
@@ -531,7 +547,7 @@ export class Customers extends React.Component {
                                         </PlacesAutocomplete>
                                     </div>
                                     <br />
-{/* 
+                                    {/* 
                                     <span className="form__form-group-label">Access Password</span>
                                     <div className="form__form-group-field">
                                         <Form.Control

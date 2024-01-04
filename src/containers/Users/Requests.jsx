@@ -17,6 +17,8 @@ import {
     getLatLng,
 } from 'react-places-autocomplete';
 import PlacesAutocomplete from 'react-places-autocomplete';
+import DateTimeRangeContainer from 'react-advanced-datetimerange-picker'
+import { FormControl } from 'react-bootstrap'
 
 
 export class RequestWater extends React.Component {
@@ -73,14 +75,14 @@ export class RequestWater extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-            {
-                key: "full_amount",
-                TrOnlyClassName: 'tsc',
-                text: "Total Amount",
-                className: "tsc",
-                align: "left"
-            },
-            
+            // {
+            //     key: "full_amount",
+            //     TrOnlyClassName: 'tsc',
+            //     text: "Amount Due",
+            //     className: "tsc",
+            //     align: "left"
+            // },
+
             {
                 key: "amount_to_pay",
                 TrOnlyClassName: 'tsc',
@@ -121,12 +123,10 @@ export class RequestWater extends React.Component {
                     );
                 }
             },
-
-
             {
-                key: "created_at",
+                key: "dates1",
                 TrOnlyClassName: 'tsc',
-                text: "Created On",
+                text: "Date Created",
                 className: "tsc",
                 align: "left"
             },
@@ -150,26 +150,12 @@ export class RequestWater extends React.Component {
 
                                     Edit
                                 </button>
-                                : null}
-
-
-                            {/* <button className="btn btn-danger btn-sm"
-                                title="Delete Category"
-                                style={
-                                    { marginRight: '10px' }}
-
-                                onClick={() => { if (window.confirm('Are you sure you want to delete this user?')) onSubmitDelete(record) }} >
-
-                                Delete
-                            </button> */}
-
-
+                                : null
+                            }
                         </Fragment>
                     );
                 }
             }
-
-
         ];
 
 
@@ -198,9 +184,14 @@ export class RequestWater extends React.Component {
                 // csv: true
             }
         }
+
+        const start = moment(new Date());
         this.state = {
             admins: [],
             isLoading: true,
+            startDate: moment(new Date()),
+            endDate: moment(new Date()),
+            datevalue: "Today",
             showModal: false,
             showError: false,
             isShowError: false,
@@ -214,14 +205,35 @@ export class RequestWater extends React.Component {
             company: [],
             record_id: '',
             amount: 0,
+            isPageLoad: true,
+
             data: [],
         };
-        this.state = {
-            isPageLoad: true,
-        }
+
+
+
+        this.ranges = {
+            "Today Only": [moment(this.state.startDate), moment(this.state.endDate)],
+            "Yesterday Only": [
+                moment(this.state.startDate).subtract(1, "days"),
+                moment(this.state.endDate).subtract(1, "days")
+            ],
+            "3 Days": [moment(this.state.startDate).subtract(3, "days"), moment(this.state.endDate)],
+            "5 Days": [moment(this.state.startDate).subtract(5, "days"), moment(this.state.endDate)],
+            "1 Week": [moment(this.state.startDate).subtract(7, "days"), moment(this.state.endDate)],
+            "2 Weeks": [moment(this.state.startDate).subtract(14, "days"), moment(this.state.endDate)],
+            "1 Month": [moment(this.state.startDate).subtract(1, "months"), moment(this.state.endDate)],
+            "1 Year": [moment(this.state.startDate).subtract(1, "years"), moment(this.state.endDate)]
+        };
+        this.local = {
+            "format": "DD-MM-YYYY",
+            "sundayFirst": false
+        };
     }
+
+
     async componentDidMount() {
-        this.getData("")
+        this.getData("", this.state.startDate, this.state.endDate)
     }
 
     handleChange = (e) => {
@@ -232,9 +244,9 @@ export class RequestWater extends React.Component {
         this.setState({ folio: e });
     }
 
-    getData = (queryString = "") => {
+    getData = (querystring = "", startDate, endDate) => {
 
-        let url = baseURL + `service_request`;
+        let url = baseURL + `service_request?startDate="${moment(startDate).format('YYYY-MM-DD')}"&endDate="${moment(endDate).format('YYYY-MM-DD')}"`;
         this.setState({
             isLoading: true,
         })
@@ -244,6 +256,27 @@ export class RequestWater extends React.Component {
             this.setState({
                 admins: branchResponse.data.data,
                 isLoading: false,
+            }, function () {
+                var data = [];
+                if (this.state.admins.length > 0) {
+                    for (let i = 0; i < this.state.admins.length; i++) {
+                        let date1 = { dates1: moment(this.state.admins[i].created_at).utc().format("DD-MMM-yyyy HH:mm:ss") };
+
+                        data.push(Object.assign(date1, this.state.admins[i]));
+                        this.setState({
+                            data: data
+                        })
+
+                        console.log("bugs", data);
+                    }
+                } else {
+                    this.setState({
+                        data: data
+                    })
+                }
+
+
+
             });
         }))
     }
@@ -260,7 +293,8 @@ export class RequestWater extends React.Component {
                 return encodeURIComponent(key) + '=' + encodeURIComponent(data[key])
             }
         }).join('&');
-        this.getData(queryString)
+        this.getData(queryString, this.state.startDate, this.state.endDate)
+
     }
 
     onSubmit = e => {
@@ -268,6 +302,7 @@ export class RequestWater extends React.Component {
         let formData = {
             "id_number": this.state.record_id,
             "amount": this.state.amount,
+            "record_id": this.state.user_id,
             "transaction_id": this.state.transaction_id,
             "role": "geologist",
         }
@@ -280,7 +315,7 @@ export class RequestWater extends React.Component {
             .then((response) => {
                 // console.log("testtesttsttesttest ",  )
                 successToast("Success")
-                this.getData("")
+                this.getData("", this.state.startDate, this.state.endDate)
                 this.setState({
                     isLoading: false,
                     isOpen: false
@@ -298,6 +333,7 @@ export class RequestWater extends React.Component {
         this.setState({
             isOpen: true,
             IsEdit: true,
+            user_id: e.user_id,
             record_id: e.id_number,
         })
     }
@@ -330,6 +366,22 @@ export class RequestWater extends React.Component {
     };
 
 
+    applyCallback = (startDate, endDate) => {
+        const Sdate1 = moment(startDate).format('DD MMM, YYYY');
+        const Edate2 = moment(endDate).format('DD MMM, YYYY');
+        localStorage.setItem("STARTDATE", startDate)
+        localStorage.setItem("ENDDATE", endDate)
+
+        this.setState({ datevalue: Sdate1 + " " + Edate2, startDate: startDate, endDate: endDate })
+
+
+        this.getData("", startDate, endDate)
+
+    }
+
+
+
+
 
     render() {
 
@@ -337,6 +389,8 @@ export class RequestWater extends React.Component {
             <div style={{ marginTop: '-20px' }} >
                 < >
                     {ToastTable()}
+
+
 
                     <Modal
                         isOpen={this.state.isOpen}
@@ -417,17 +471,36 @@ export class RequestWater extends React.Component {
                                     <div className="col-md-8">
                                         <h5>Service Requests</h5>
                                     </div>
+
                                     {/* <div className="col-md-4 float-right">
                                         <button className="btn btn-primary" onClick={this.isOpen} > Add New Geologist
                                         </button>
                                     </div> */}
                                 </div>
+                                <div className="col-3">
+                                    <DateTimeRangeContainer
+                                        ranges={this.ranges}
+                                        start={this.state.startDate}
+                                        end={this.state.endDate}
+                                        local={this.local}
+                                        applyCallback={this.applyCallback}>
+                                        <FormControl
+                                            id="formControlsTextB"
+                                            type="text"
+                                            value={this.state.datevalue}
+                                            label="Text"
+                                            placeholder="Filter by Date"
+                                        />
+                                    </DateTimeRangeContainer>
+                                </div>
+
+
                                 <br />
                                 <div className="panel-body" >
 
                                     <ReactDatatable
                                         config={this.config}
-                                        records={this.state.admins}
+                                        records={this.state.data}
                                         columns={this.columns}
                                         id="tsc"
                                         loading={this.state.isLoading}

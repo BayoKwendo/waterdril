@@ -10,6 +10,7 @@ import { Form } from 'react-bootstrap';
 import { Button } from 'reactstrap';
 import { MDBCloseIcon } from "mdbreact"
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Drillers } from './Drillers';
 // import { RadioGroup, RadioButton } from 'react-radio-buttons'
 
 export class Services extends React.Component {
@@ -75,6 +76,14 @@ export class Services extends React.Component {
                 cell: record => {
                     return (
                         <Fragment className="center" >
+
+                            <button className="btn btn-primary btn-sm"
+                                style={
+                                    { marginRight: '10px' }}
+                                onClick={() => { this.isOpenGo(record) }}
+                            >   More <i className='fa fa-plus'></i>
+                            </button>
+
                             <button className="btn btn-primary btn-sm"
                                 style={
                                     { marginRight: '10px' }}
@@ -105,6 +114,8 @@ export class Services extends React.Component {
 
                                     Activate
                                 </button> : null}
+
+
 
                         </Fragment>
                     );
@@ -147,6 +158,8 @@ export class Services extends React.Component {
         this.state = {
             isPageLoad: true,
             isOpen: false,
+            goOpen: false,
+
             serviceData: [
                 {
                     label: 'Test Unit Pump',
@@ -168,6 +181,16 @@ export class Services extends React.Component {
                     label: 'Tank Installation',
                     value: 'tank_installation'
                 }
+                ,
+                {
+                    label: 'Surveys',
+                    value: 'surveys'
+                }
+                ,
+                {
+                    label: 'Other Services',
+                    value: 'other_services'
+                }
             ]
         }
     }
@@ -176,14 +199,11 @@ export class Services extends React.Component {
     }
 
     getData = () => {
-
         let url = baseURL + `service_portal`;
         this.setState({
             isLoading: true,
         })
-        axios.all([
-            axios.get(url, CONFIG)
-        ]).then(axios.spread((branchResponse) => {
+        axios.all([axios.get(url, CONFIG)]).then(axios.spread((branchResponse) => {
             this.setState({
                 admins: branchResponse.data.data,
                 isLoading: false,
@@ -265,6 +285,20 @@ export class Services extends React.Component {
     }
 
 
+
+    isOpenGo = e => {
+        localStorage.setItem("unit_name", e.name)
+        localStorage.setItem("unit_type", e.type);
+        localStorage.setItem("unit_id", e.id);
+
+        this.setState({
+            goOpen: true,
+            name: e.name,
+            id: e.id,
+            type: e.type,
+            IsEdit: false
+        })
+    }
 
     isOpen = e => {
         this.setState({
@@ -355,168 +389,169 @@ export class Services extends React.Component {
                 < >
                     {ToastTable()}
 
-                    < Card >
-                        <CardBody >
+                    {this.state.goOpen ?
+                        window.location.href = "test_units"
+                        :
+                        < Card >
+                            <CardBody >
 
 
-                            <Modal
-                                isOpen={this.state.isOpenAdd}
-                                onRequestClose={e => {
-                                    this.closeModalAdd(e)
-                                }}
-                                contentLabel="My dialog"
-                                className="mymodal"
-                                onAfterOpen={() => {
-                                    document.body.style.overflow = 'hidden';
-                                }}
-                                onAfterClose={() => {
-                                    document.body.removeAttribute('style');
-                                }}
-                                overlayClassName="myoverlay"
-                                closeTimeoutMS={500}
-                            >
-                                <MDBCloseIcon onClick={this.closeModalAdd} />
+                                <Modal
+                                    isOpen={this.state.isOpenAdd}
+                                    onRequestClose={e => {
+                                        this.closeModalAdd(e)
+                                    }}
+                                    contentLabel="My dialog"
+                                    className="mymodal"
+                                    onAfterOpen={() => {
+                                        document.body.style.overflow = 'hidden';
+                                    }}
+                                    onAfterClose={() => {
+                                        document.body.removeAttribute('style');
+                                    }}
+                                    overlayClassName="myoverlay"
+                                    closeTimeoutMS={500}
+                                >
+                                    <MDBCloseIcon onClick={this.closeModalAdd} />
 
-                                <h6><b>{"Add Service"}</b></h6>
-                                <br />
-                                <br />
-                                <>
-                                    <Form className="form login-form" onSubmit={this.onSubmitAdd}>
-                                        {/*n  <h5><b>Get Agent Number</b></h5> */}
+                                    <h6><b>{"Add Service"}</b></h6>
+                                    <br />
+                                    <br />
+                                    <>
+                                        <Form className="form login-form" onSubmit={this.onSubmitAdd}>
+                                            {/*n  <h5><b>Get Agent Number</b></h5> */}
 
-                                        <div className="form__form-group col-10 offset-1">
-                                            <span className="form__form-group-label">Service Name</span>
+                                            <div className="form__form-group col-10 offset-1">
+                                                <span className="form__form-group-label">Service Name</span>
 
-                                            <div className="form__form-group-field">
-                                                <Form.Control
-                                                    autoFocus
-                                                    type="text"
-                                                    name="name"
-                                                    style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                                                    placeholder="Name"
-                                                    className="input-without-border-radius"
-                                                    value={this.state.name}
-                                                    onChange={this.handleChange}
+                                                <div className="form__form-group-field">
+                                                    <Form.Control
+                                                        autoFocus
+                                                        type="text"
+                                                        name="name"
+                                                        style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                                        placeholder="Name"
+                                                        className="input-without-border-radius"
+                                                        value={this.state.name}
+                                                        onChange={this.handleChange}
+                                                    />
+                                                </div>
+                                                <br />
+                                                <br />
+
+                                                <Select
+                                                    isClearable
+                                                    options={
+                                                        (this.state.serviceData.length > 0 || this.state.serviceData.length === 0) &&
+                                                        this.state.serviceData.map((countyItem, i) => ({
+                                                            label: countyItem.label,
+                                                            value: countyItem.value
+                                                        }))}
+                                                    placeholder="Select Service Type"
+                                                    autosize={true}
+                                                    onChange={this.onSelectChangesShort}
+                                                    className="selected"
+                                                    menuPortalTarget={document.body}
+                                                    name="type"
                                                 />
+                                                <br />
+
+                                                <br />
+
                                             </div>
-                                            <br />
-                                            <br />
 
-                                            <Select
-                                                isClearable
-                                                options={
-                                                    (this.state.serviceData.length > 0 || this.state.serviceData.length === 0) &&
-                                                    this.state.serviceData.map((countyItem, i) => ({
-                                                        label: countyItem.label,
-                                                        value: countyItem.value
-                                                    }))}
-                                                placeholder="Select Service Type"
-                                                autosize={true}
-                                                onChange={this.onSelectChangesShort}
-                                                className="selected"
-                                                menuPortalTarget={document.body}
-                                                name="type"
-                                            />
-                                            <br />
-
-                                            <br />
-
-                                        </div>
-
-                                        <div className="account__btns col-8 offset-2">
-                                            <Button className="account__btn" type='submit' color="success"> {
-                                                this.state.isLoading ? "Please wait..." : "Add"
-                                            }</Button>
-                                        </div>
-
-                                    </Form>
-                                </>
-                            </Modal>
-
-                            <Modal
-                                isOpen={this.state.isOpen}
-                                onRequestClose={e => {
-                                    this.closeModal(e)
-                                }}
-                                contentLabel="My dialog"
-                                className="mymodal"
-                                onAfterOpen={() => {
-                                    document.body.style.overflow = 'hidden';
-                                }}
-                                onAfterClose={() => {
-                                    document.body.removeAttribute('style');
-                                }}
-                                overlayClassName="myoverlay"
-                                closeTimeoutMS={500}
-                            >
-                                <MDBCloseIcon onClick={this.closeModal} />
-
-                                <h6><b>{"Edit Service"}</b></h6>
-                                <br />
-                                <br />
-                                <>
-                                    <Form className="form login-form" onSubmit={this.onSubmit}>
-                                        {/*n  <h5><b>Get Agent Number</b></h5> */}
-
-                                        <div className="form__form-group col-10 offset-1">
-
-                                            <span className="form__form-group-label">Service Brand Name</span>
-
-                                            <div className="form__form-group-field">
-                                                <Form.Control
-                                                    autoFocus
-                                                    type="text"
-                                                    name="name"
-                                                    style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                                                    placeholder="Name"
-                                                    className="input-without-border-radius"
-                                                    value={this.state.name}
-                                                    onChange={this.handleChange}
-                                                />
+                                            <div className="account__btns col-8 offset-2">
+                                                <Button className="account__btn" type='submit' color="success"> {
+                                                    this.state.isLoading ? "Please wait..." : "Add"
+                                                }</Button>
                                             </div>
-                                            <br />
 
-                                            <br />
+                                        </Form>
+                                    </>
+                                </Modal>
+
+                                <Modal
+                                    isOpen={this.state.isOpen}
+                                    onRequestClose={e => {
+                                        this.closeModal(e)
+                                    }}
+                                    contentLabel="My dialog"
+                                    className="mymodal"
+                                    onAfterOpen={() => {
+                                        document.body.style.overflow = 'hidden';
+                                    }}
+                                    onAfterClose={() => {
+                                        document.body.removeAttribute('style');
+                                    }}
+                                    overlayClassName="myoverlay"
+                                    closeTimeoutMS={500}
+                                >
+                                    <MDBCloseIcon onClick={this.closeModal} />
+
+                                    <h6><b>{"Edit Service"}</b></h6>
+                                    <br />
+                                    <br />
+                                    <>
+                                        <Form className="form login-form" onSubmit={this.onSubmit}>
+                                            {/*n  <h5><b>Get Agent Number</b></h5> */}
+
+                                            <div className="form__form-group col-10 offset-1">
+
+                                                <span className="form__form-group-label">Service Brand Name</span>
+
+                                                <div className="form__form-group-field">
+                                                    <Form.Control
+                                                        autoFocus
+                                                        type="text"
+                                                        name="name"
+                                                        style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                                        placeholder="Name"
+                                                        className="input-without-border-radius"
+                                                        value={this.state.name}
+                                                        onChange={this.handleChange}
+                                                    />
+                                                </div>
+                                                <br />
+
+                                                <br />
+                                            </div>
+
+                                            <div className="account__btns col-8 offset-2">
+                                                <Button className="account__btn" type='submit' color="success"> {
+                                                    this.state.isLoading ? "Please wait..." : "Update"
+                                                }</Button>
+                                            </div>
+
+                                        </Form>
+                                    </>
+                                </Modal>
+                                < >
+                                    <div className="row">
+                                        <div className="col-md-8">
+                                            <h5>Services Offered</h5>
                                         </div>
-
-                                        <div className="account__btns col-8 offset-2">
-                                            <Button className="account__btn" type='submit' color="success"> {
-                                                this.state.isLoading ? "Please wait..." : "Update"
-                                            }</Button>
+                                        <div className="col-md-4 float-right">
+                                            <button className="btn btn-primary" onClick={this.isOpenAdd} > Add Service Name                                        </button>
                                         </div>
+                                    </div>
 
-                                    </Form>
+                                    <br />
+                                    <div className="panel-body" >
+
+                                        <ReactDatatable
+                                            config={this.config}
+                                            records={this.state.admins}
+                                            columns={this.columns}
+                                            id="tsc"
+                                            loading={this.state.isLoading}
+                                            onChange={this.tableChangeHandler} />
+                                    </div>
                                 </>
-                            </Modal>
 
+                            </CardBody>
 
-                            < >
-
-                                <div className="row">
-                                    <div className="col-md-8">
-                                        <h5>Services Offered</h5>
-                                    </div>
-                                    <div className="col-md-4 float-right">
-                                        <button className="btn btn-primary" onClick={this.isOpenAdd} > Add Service Name                                        </button>
-                                    </div>
-                                </div>
-
-                                <br />
-                                <div className="panel-body" >
-
-                                    <ReactDatatable
-                                        config={this.config}
-                                        records={this.state.admins}
-                                        columns={this.columns}
-                                        id="tsc"
-                                        loading={this.state.isLoading}
-                                        onChange={this.tableChangeHandler} />
-                                </div>
-                            </>
-
-                        </CardBody>
-
-                    </Card>
+                        </Card>
+                    }
                 </>
             </div>
 
