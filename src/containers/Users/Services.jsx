@@ -143,7 +143,6 @@ export class Services extends React.Component {
                     previous: <span>&#9668;</span>
                 }
             },
-
             button: {
                 excel: true,
                 print: false,

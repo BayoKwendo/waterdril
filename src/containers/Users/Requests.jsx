@@ -303,6 +303,8 @@ export class RequestWater extends React.Component {
             "id_number": this.state.record_id,
             "amount": this.state.amount,
             "record_id": this.state.user_id,
+
+            "user_id": this.state.user_id,
             "transaction_id": this.state.transaction_id,
             "role": "geologist",
         }
