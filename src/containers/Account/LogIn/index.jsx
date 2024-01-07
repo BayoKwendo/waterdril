@@ -399,7 +399,7 @@ const LogIn = () => {
               </button>
               <br />
               <br />
-              <p><b>Smart Drilling: </b>Enhances customer value-Creates trust in a broken system</p>
+              <p><b>Smart Drilling: </b><br />Enhances customer value-Created trust in a broken system<br />Automates orders management through algorithm-All vetted vendors</p>
             </form>
           </div>
         </div>
