@@ -297,6 +297,32 @@ export class Drillers extends React.Component {
                 });
             });
     }
+
+
+    onSubmitDelete = e => {
+        let formData = {
+            "id": e.id,
+            "status": 'inactive'
+        }
+        this.setState({
+            isLoading: true,
+        })
+        // alert(formData)
+        axios.post(baseURL + 'deactivate_user', formData, CONFIG)
+            .then((response) => {
+                // console.log("testtesttsttesttest ",  )
+                successToast("Success")
+                this.getData("")
+                this.setState({
+                    isLoading: false,
+                })
+            }).catch(error => {
+                errorToast(error.response.data.message)
+                this.setState({
+                    isLoading: false,
+                });
+            });
+    }
     onSubmit = e => {
         e.preventDefault();
         let formData = {

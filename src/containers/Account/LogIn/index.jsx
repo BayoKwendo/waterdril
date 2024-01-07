@@ -7,7 +7,7 @@ import { Button } from 'reactstrap';
 import { MDBCloseIcon } from "mdbreact"
 import { baseURL, CONFIG, errorToast, successToast, ToastTable } from '../../../configs/exports';
 import axios from 'axios';
-// import img from '../../../_assets/img/logo.png'
+import img from '../../../_assets/img/logo.png'
 // import Select from 'react-select';
 import Alert from '../../../shared/components/Alert';
 
@@ -342,14 +342,14 @@ const LogIn = () => {
               <div className="item">
                 <div className="item-sec center">
                   <div className="login_slider_image center">
-                    {/* <img className='center' src={img} alt="logo" /> */}
+                    <img className='center' src={img} alt="logo" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
           <div className="col-md-6 elite-login-right">
-            <h1 className="elite-login-head">DRILLING ECOSYSTEM</h1>
+            <h1 className="elite-login-head">SMART DRILLING</h1>
             <form className="elite-login-form" onSubmit={onSubmit} >
 
               <div className="elite-form-field">
