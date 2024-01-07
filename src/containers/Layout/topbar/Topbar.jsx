@@ -18,16 +18,16 @@ const Topbar = ({
         changeMobileSidebarVisibility={changeMobileSidebarVisibility}
         changeSidebarVisibility={changeSidebarVisibility}
       />
-      <h5 style={{marginTop: '18px'}}><b>WaterDrill</b></h5>
+      <h5 style={{ marginTop: '18px' }}><b>SmartDrill</b></h5>
       {/* <Link className="topbar__logo" to="/online_marketing_dashboard" /> */}
     </div>
     <div className="topbar__right">
-        {/* <TopbarNotification />
+      {/* <TopbarNotification />
         <TopbarMail new /> */}
-        <TopbarProfile user={user} />
-        {/* <TopbarLanguage /> */}
-      </div>
-   </div>
+      <TopbarProfile user={user} />
+      {/* <TopbarLanguage /> */}
+    </div>
+  </div>
 );
 
 Topbar.propTypes = {
