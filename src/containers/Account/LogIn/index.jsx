@@ -397,12 +397,14 @@ const LogIn = () => {
               <button type="submit" className="elite-form-btn"> {
                 loading ? "Please wait..." : "Sign In"}
               </button>
+              <br />
+              <br />
+              <p><b>Smart Drilling: </b>Enhances customer value-Creates trust in a broken system</p>
             </form>
           </div>
-          {/* <p onClick={this.resetpasswordchange}>Forgot Password?</p><br></br> */}
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
 
