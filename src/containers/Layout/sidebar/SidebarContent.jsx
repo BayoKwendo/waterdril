@@ -15,6 +15,8 @@ const SidebarContent = ({
     <div className="sidebar__content">
 
       <SidebarLink title="Dashboard" route="/dashboard" icon="home" onClick={hideSidebar} />
+      <SidebarLink title="Track" route="/googlemap" icon="map" onClick={hideSidebar} />
+
       <SidebarLink title="Customers" route="/customer" icon="users" onClick={hideSidebar} />
 
       <SidebarLink title="Services" route="/services" icon="briefcase" onClick={hideSidebar} />

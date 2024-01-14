@@ -20,6 +20,7 @@ export const GoogleMapComponent = () => {
                 axios.post(baseURL + 'user_driver')
                     .then((allResp) => {
                         let data = [];
+                        console.log("ffjjfjffkffjjfjjf ")
 
                         data.push(Object.assign(response.data));
 
@@ -53,7 +54,7 @@ export const GoogleMapComponent = () => {
                 console.log("ffjjfjffjjf ", error)
             });
 
-    }, [])
+    }, [datamap])
     return (
         <div style={{ marginTop: '-20px' }} >
             < >
