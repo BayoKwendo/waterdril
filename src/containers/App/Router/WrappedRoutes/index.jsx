@@ -9,6 +9,7 @@ import { Geologists } from '../../../Users/Geologists';
 import { RequestWater } from '../../../Users/Requests';
 import { UserProfile } from '../../../Users/UserProfile';
 import { Customers } from '../../../Users/Customer';
+import  {GoogleMapComponent}  from '../../../Users/GoogleMapComponent';
 
 
 export default () => (
@@ -18,6 +19,9 @@ export default () => (
 
       <Route path="/dashboard" component={Default} />
 
+      <Route path="/googlemap" component={GoogleMapComponent} />
+      
+      
       
       <Route path="/user_profile" component={UserProfile} />
 

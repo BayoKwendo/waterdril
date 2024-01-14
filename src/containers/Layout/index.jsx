@@ -90,24 +90,7 @@ const Layout = ({
 
   return (
     <div className={layoutClass}>
-      <Customizer
-        customizer={customizer}
-        sidebar={sidebar}
-        theme={theme}
-        rtl={rtl}
-        roundBorders={roundBorders}
-        blocksShadows={blocksShadows}
-        changeSidebarVisibility={sidebarVisibility}
-        toggleTopNavigation={topNavigation}
-        changeToDark={changeToDark}
-        changeToLight={changeToLight}
-        changeToRTL={changeToRTL}
-        changeToLTR={changeToLTR}
-        changeRoundBordersOn={changeRoundBordersOn}
-        changeRoundBordersOff={changeRoundBordersOff}
-        changeBlocksShadowsOn={changeBlocksShadowsOn}
-        changeBlocksShadowsOff={changeBlocksShadowsOff}
-      />
+
       {customizer.topNavigation
         ? (
           <TopbarWithNavigation
