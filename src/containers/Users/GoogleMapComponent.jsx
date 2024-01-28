@@ -20,7 +20,6 @@ export const GoogleMapComponent = () => {
                 axios.post(baseURL + 'user_driver')
                     .then((allResp) => {
                         let data = [];
-                        console.log("ffjjfjffkffjjfjjf ")
 
                         data.push(Object.assign(response.data));
 
@@ -33,7 +32,7 @@ export const GoogleMapComponent = () => {
                             for (let x = 0; x < allResp.data.data.length; x++) {
 
                                 if (data[0][allResp.data.data[x].id]) {
-                                    let mname = { name: `Name: ${allResp.data.data[x].name}\nPhone: ${allResp.data.data[x].msisdn}\nID Number: ${allResp.data.data[x].id_number}` }
+                                    let mname = { name: `Name: ${allResp.data.data[x].name}\nPhone: ${allResp.data.data[x].msisdn}\nID Number: ${allResp.data.data[x].id_number}\nMovement Status: ${allResp.data.data[x].movement_status}` }
 
                                     let mid = { id: allResp.data.data[x].id }
                                     let mlat = { latitude: data[0][allResp.data.data[x].id]['0000'].lat }
