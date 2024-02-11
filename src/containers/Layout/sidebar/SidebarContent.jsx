@@ -26,6 +26,7 @@ const SidebarContent = ({
 
           <SidebarLink title="Service Requests" route="/request_water" icon="users" onClick={hideSidebar} />
 
+          <SidebarLink title="Transactions" route="/deposit" icon="briefcase" onClick={hideSidebar} />
           <SidebarLink title="User Profile" route="/user_profile" icon="users" onClick={hideSidebar} />
 
         </>

@@ -13,6 +13,7 @@ import { GoogleMapComponent } from '../../../Users/GoogleMapComponent';
 import { Owners } from '../../../Users/Owners';
 import { Drivers } from '../../../Users/Drivers';
 import { GoogleMapComponentOne } from '../../../Users/GoogleMapComponentOne';
+import { DepositMade } from '../../../Users/Deposits';
 
 
 export default () => (
@@ -24,6 +25,7 @@ export default () => (
 
       <Route path="/googlemap" component={GoogleMapComponent} />
 
+      <Route path="/deposit" component={DepositMade} />
 
       <Route path="/googlemap_one" component={GoogleMapComponentOne} />
 
