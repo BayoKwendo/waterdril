@@ -84,19 +84,34 @@ const LogIn = () => {
         if (response.data.success) {
 
           localStorage.setItem("USER", response.data.user)
+          localStorage.setItem("user_role", response.data.user.role)
           localStorage.setItem("token", response.data.access_token)
           localStorage.setItem("msisdn", response.data.user.msisdn);
+
+          localStorage.setItem("name", response.data.user.name);
+          localStorage.setItem("user_id", response.data.user.id)
           isLoggedIn(true)
 
           successToast("Login Success! Redirecting....")
 
           localStorage.setItem("isLoggedIn", true);
           // // eslint-disable-next-line
-          window.setTimeout(() => {
-            window.location.href = "dashboard"
-            isLoading(false)
-            // }
-          }, 10);
+
+          if (response.data.user.role == 'admin') {
+            window.setTimeout(() => {
+              window.location.href = "dashboard"
+              isLoading(false)
+              // }
+            }, 10);
+          }
+
+          if (response.data.user.role == 'onwer') {
+            window.setTimeout(() => {
+              window.location.href = "driver"
+              isLoading(false)
+              // }
+            }, 10);
+          }
         }
         else {
 

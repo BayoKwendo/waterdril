@@ -13,6 +13,7 @@ import * as moment from 'moment';
 import PhoneInput from 'react-phone-number-input'
 import flags from 'react-phone-number-input/flags'
 import Select from "react-select";
+
 import 'react-phone-number-input/style.css'
 
 
@@ -335,7 +336,7 @@ const UsersStaffs = () => {
 
 
         let formData = {
-           
+
             "name": first_name,
             "username": username,
             "role_id": role_id,
@@ -404,7 +405,7 @@ const UsersStaffs = () => {
             "confirmPassword": password,
             "msisdn": msisdn
 
-           
+
         }
         setLoad(true)
 

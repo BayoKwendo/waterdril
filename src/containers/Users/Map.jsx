@@ -35,8 +35,9 @@ const Map = compose(
     withScriptjs,
     withGoogleMap
 )(props => (
+
     <GoogleMap defaultZoom={props.zoom} defaultCenter={props.center}>
-        {props.places && props.places.length > 0 &&
+        {props && props.places && props.places.length > 0 &&
             props.places.map((place, i) => {
                 let lat = parseFloat(place.latitude, 10);
                 let lng = parseFloat(place.longitude, 10);
@@ -50,7 +51,7 @@ const Map = compose(
                         icon={icon}
                         onClick={props.onToggleOpen.bind(this, i)}
                     >
-                        {props.infoWindows[i].isOpen && (
+                        {props.infoWindows.length > 0 && props.infoWindows[i].isOpen && (
                             <InfoWindow onCloseClick={props.onToggleOpen.bind(i)}>
                                 <div>{place.name}</div>
                             </InfoWindow>

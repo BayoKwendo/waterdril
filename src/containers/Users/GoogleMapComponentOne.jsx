@@ -3,10 +3,10 @@ import Map from './Map';
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from "firebase/database";
 import axios from 'axios';
-import { CONFIG, baseURL } from '../../configs/exports';
+import { CONFIG, USER_ID, baseURL } from '../../configs/exports';
 
 
-export const GoogleMapComponent = () => {
+export const GoogleMapComponentOne = () => {
 
 
     const [datamap, setDataMap] = React.useState([]);
@@ -17,7 +17,7 @@ export const GoogleMapComponent = () => {
 
         axios.get('https://driller-3a61b-default-rtdb.europe-west1.firebasedatabase.app/online_drivers.json')
             .then((response) => {
-                axios.post(baseURL + 'user_driver')
+                axios.get(baseURL + `user_driver_one?referred_id=${USER_ID}`)
                     .then((allResp) => {
                         let data = [];
 

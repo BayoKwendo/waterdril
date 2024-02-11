@@ -2,15 +2,15 @@ import React, { Fragment } from 'react';
 import ReactDatatable from '@ashvin27/react-datatable';
 import axios from 'axios';
 import { Card, CardBody } from 'reactstrap';
-import { baseURL, CONFIG, errorToast, formatCurrency, mdata, successToast, ToastTable } from '../../configs/exports';
+import { baseURL, CONFIG, errorToast, formatCurrency, mdata, successToast, ToastTable, USER_ID } from '../../configs/exports';
+import * as moment from 'moment';
 import Modal from 'react-modal';
 import { Form } from 'react-bootstrap';
 import { Button } from 'reactstrap';
-import { MDBCloseIcon } from "mdbreact";
+import { MDBCloseIcon } from "mdbreact"
 import 'bootstrap/dist/css/bootstrap.min.css';
 import PhoneOutlineIcon from 'mdi-react/PhoneOutlineIcon';
-import Input from 'react-phone-number-input/input';
-import Select from "react-select";
+import Input from 'react-phone-number-input/input'
 import {
     geocodeByAddress,
     geocodeByPlaceId,
@@ -19,7 +19,7 @@ import {
 import PlacesAutocomplete from 'react-places-autocomplete';
 
 
-export class Drillers extends React.Component {
+export class Drivers extends React.Component {
     constructor(props) {
         super(props);
 
@@ -27,7 +27,6 @@ export class Drillers extends React.Component {
 
         this.isOpen = this.isOpen.bind(this);
         this.closeModal = this.closeModal.bind(this);
-
         this.columns = [
             {
                 key: "name",
@@ -53,42 +52,11 @@ export class Drillers extends React.Component {
                 align: "left"
             },
 
-            {
-                key: "location",
-                TrOnlyClassName: 'tsc',
-                text: "Location",
-                className: "tsc",
-                align: "left"
-            },
-
-            {
-                key: "lat",
-                TrOnlyClassName: 'tsc',
-                text: "Latitude",
-                className: "tsc",
-                align: "left"
-            },
-
-            {
-                key: "longitude",
-                TrOnlyClassName: 'tsc',
-                text: "Longitude",
-                className: "tsc",
-                align: "left"
-            },
-            {
-                key: "amount",
-                TrOnlyClassName: 'tsc',
-                text: "Pricing",
-                className: "tsc",
-                align: "left"
-            },
-
             // deno-lint-ignore no-dupe-keys
             {
                 key: "status",
                 TrOnlyClassName: 'tsc',
-                text: "Status",
+                text: "Availability",
                 TrOnlyClassName: 'cell',
 
                 className: "cell",
@@ -113,29 +81,77 @@ export class Drillers extends React.Component {
                 }
             },
 
+
             {
-                key: "driver_name",
+                key: "location",
                 TrOnlyClassName: 'tsc',
-                text: "DriverName",
+                text: "Location",
                 className: "tsc",
                 align: "left"
             },
 
             {
-                key: "driver_msisdn",
+                key: "lat",
                 TrOnlyClassName: 'tsc',
-                text: "Driver Contacts",
+                text: "Latitude",
                 className: "tsc",
                 align: "left"
             },
 
             {
-                key: "driver_id_number",
+                key: "longitude",
                 TrOnlyClassName: 'tsc',
-                text: "Driver ID Number",
+                text: "Longitude",
                 className: "tsc",
                 align: "left"
             },
+            {
+                key: "role",
+                TrOnlyClassName: 'tsc',
+                text: "Role",
+                className: "tsc",
+                align: "left"
+            },
+
+            {
+                key: "amount",
+                TrOnlyClassName: 'tsc',
+                text: "Pricing",
+                className: "tsc",
+                align: "left"
+            },
+
+
+
+            {
+                key: "active_status",
+                TrOnlyClassName: 'tsc',
+                text: "Status",
+                TrOnlyClassName: 'cell',
+
+                className: "cell",
+                align: "left",
+                cell: record => {
+                    return (
+                        <Fragment className="center"  >
+                            {record.active_status === 'inactive' ?
+                                <div>
+                                    <span class="badge-danger" style={{ borderRadius: "5px", padding: "2px" }}>
+                                        Inactive
+                                    </span>
+                                </div>
+                                : null}
+                            {record.active_status === 'active' ?
+                                <span class="badge-success" style={{ borderRadius: "5px", padding: "2px" }}>
+                                    Active
+                                </span>
+                                : null}
+                        </Fragment >
+                    );
+                }
+            },
+
+
 
             {
                 key: "created_on",
@@ -144,54 +160,38 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
+
             {
                 key: "action",
                 text: "Options",
                 TrOnlyClassName: 'cell',
                 className: "cell",
-                width: 250,
                 sortable: false,
                 cell: record => {
                     return (
                         <Fragment className="center" >
-                            <button className="btn btn-primary btn-sm"
+                            <button className="btn-warning btn-sm"
                                 style={
                                     { marginRight: '10px' }}
                                 onClick={() => { this.isOpenEdit(record) }}
-
                             >
-
-                                Edit
+                                Update
                             </button>
-                            <button className="btn btn-primary btn-sm"
-                                style={
-                                    { marginRight: '10px' }}
-                                onClick={() => { this.isOpenEditPhoto(record) }}
-
-                            >
-
-                                Update Logo
-                            </button>
-
-                            <button className="btn btn-danger btn-sm"
-                                title="Delete Category"
-                                style={
-                                    { marginRight: '10px' }}
-
-                                onClick={() => { if (window.confirm('Are you sure you want to deactive this test unit?')) this.onSubmitDelete(record) }} >
-
-                                Deactivate
-                            </button>
-                            {/* 
-                            <button className="btn btn-danger btn-sm"
-                                style={
-                                    { marginRight: '10px' }}
-                                onClick={() => { this.isOpenEditPhoto(record) }}
-
-                            >
-
-                                Deactivate
-                            </button> */}
+                            {record.active_status == 'active' ?
+                                <button className="btn-danger btn-sm"
+                                    style={
+                                        { marginRight: '10px' }}
+                                    onClick={() => { if (window.confirm('Are you sure you want to disable this driver?')) this.onSubmitDelete(record) }} >
+                                    Disable
+                                </button>
+                                :
+                                <button className="btn-success btn-sm"
+                                    style={
+                                        { marginRight: '10px' }}
+                                    onClick={() => { if (window.confirm('Are you sure you want to enable this driver?')) this.onSubmitActivate(record) }} >
+                                    Enable
+                                </button>
+                            }
                         </Fragment>
                     );
                 }
@@ -241,17 +241,13 @@ export class Drillers extends React.Component {
             IsEdit: false,
             company: [],
             record_id: '',
-            onwerData: [],
-            amount: 0,
             description: "",
             debit_account: 0,
             folio: "PETTY CASH",
             isOpenEditPhoto: false,
             status: "",
-            data: [],
             isPageLoad: true,
-            referred_id: 0,
-
+            data: [],
         };
     }
     async componentDidMount() {
@@ -268,25 +264,18 @@ export class Drillers extends React.Component {
 
     getData = (queryString = "") => {
 
-        let url = baseURL + `users?role=${localStorage.getItem('unit_type')}&${queryString}`;
-        let url_own = baseURL + `users?role=onwer&${queryString}`;
-
+        let url = baseURL + `users?referred_id=${USER_ID}&${queryString}`;
         this.setState({
             isLoading: true,
         })
         axios.all([
-            axios.get(url, CONFIG),
-            axios.get(url_own, CONFIG)
-        ]).then(axios.spread((branchResponse, ownerResponse) => {
+            axios.get(url, CONFIG)
+        ]).then(axios.spread((branchResponse) => {
             this.setState({
-                onwerData: ownerResponse.data.data,
                 admins: branchResponse.data.data,
                 isLoading: false,
-
             });
-
         }))
-
     }
 
 
@@ -331,12 +320,12 @@ export class Drillers extends React.Component {
             });
     }
 
-
-    onSubmitDelete = e => {
+    onSubmitActivate = e => {
         let formData = {
             "id": e.id,
-            "status": 'inactive'
+            "status": 'active'
         }
+
         this.setState({
             isLoading: true,
         })
@@ -356,48 +345,31 @@ export class Drillers extends React.Component {
                 });
             });
     }
-    onSubmit = e => {
-        e.preventDefault();
 
-        if (Number(this.state.referred_id) > 0) {
-            let formData = {
-                "name": this.state.name,
-                "id_number": this.state.id_number,
-                "msisdn": this.state.msisdn.toString().replaceAll("+", ""),
-                "location": this.state.address,
-                "onwer_id": this.state.referred_id,
-                "lat": this.state.latitude,
-                "long": this.state.longitude,
-                "role": localStorage.getItem('unit_type'),
-                "amount": this.state.amount,
-                "password": this.state.password
-            }
 
-            this.setState({
-                isLoading: true,
-            })
-            // alert(formData)
-            axios.post(baseURL + 'user', formData, CONFIG)
-                .then((response) => {
-                    // console.log("testtesttsttesttest ",  )
-                    successToast("Success")
-                    this.getData("")
-                    this.setState({
-                        isLoading: false,
-                        isOpen: false
-                    })
-                }).catch(error => {
-                    errorToast(error.response.data.message)
-                    this.setState({
-                        isLoading: false,
-                    });
-                });
-        } else {
-            errorToast("Please attach onwer")
+    onEditDelete = e => {
+        let formData = {
+            "id": e.id,
         }
+
+        this.setState({
+            isLoading: true,
+        })
+        // alert(formData)
+        axios.post(baseURL + 'update_customer', formData, CONFIG)
+            .then((resp) => {
+                successToast("Success")
+                this.getData("")
+                this.setState({
+                    isLoading: false,
+                })
+            }).catch(error => {
+                errorToast(error.response.data.message)
+                this.setState({
+                    isLoading: false,
+                });
+            });
     }
-
-
 
     onEditSubmit = e => {
         e.preventDefault();
@@ -405,12 +377,9 @@ export class Drillers extends React.Component {
             "name": this.state.name,
             "id_number": this.state.id_number,
             "msisdn": this.state.msisdn.toString().replaceAll("+", ""),
-            "location": this.state.address,
-            "lat": this.state.latitude,
-            "long": this.state.longitude,
-            "onwer_id": this.state.referred_id,
-            "role": localStorage.getItem('unit_type'),
+            "role": this.state.role,
             "id": this.state.id,
+            "onwer_id": USER_ID,
             "amount": this.state.amount,
             "password": this.state.password
         }
@@ -418,25 +387,21 @@ export class Drillers extends React.Component {
         this.setState({
             isLoading: true,
         })
-        if (Number(this.state.referred_id) > 0) {
-            // alert(formData)
-            axios.post(baseURL + 'user_edit', formData, CONFIG)
-                .then((response) => {
-                    successToast("Success")
-                    this.getData("")
-                    this.setState({
-                        isLoading: false,
-                        isOpenEdit: false
-                    })
-                }).catch(error => {
-                    errorToast(error.response.data.message)
-                    this.setState({
-                        isLoading: false,
-                    });
+        // alert(formData)
+        axios.post(baseURL + 'user_edit', formData, CONFIG)
+            .then((response) => {
+                successToast("Success")
+                this.getData("")
+                this.setState({
+                    isLoading: false,
+                    isOpenEdit: false
+                })
+            }).catch(error => {
+                errorToast(error.response.data.message)
+                this.setState({
+                    isLoading: false,
                 });
-        } else {
-            errorToast("Please attach onwer")
-        }
+            });
     }
 
     handleLogo = event => {
@@ -448,41 +413,15 @@ export class Drillers extends React.Component {
 
 
 
-    onEditSubmithoto = e => {
-        e.preventDefault();
-
-        var data = new FormData();
-        data.append("applicantion_form", this.state.logo);
-        data.append("id", this.state.id);
-
-        this.setState({
-            isLoading: true,
-        })
-        // alert(formData)
-        axios.post(baseURL + 'user_edit_photo', data, CONFIG)
-            .then((response) => {
-                successToast("Success")
-                this.getData("")
-                this.setState({
-                    isLoading: false,
-                    isOpenEditPhoto: false
-                })
-            }).catch(error => {
-                errorToast(error.response.data.message)
-                this.setState({
-                    isLoading: false,
-                });
-            });
-    }
 
     isOpenEdit = e => {
         this.setState({
             isOpenEdit: true,
             IsEdit: true,
-            referred_id: 0,
             record_id: e.transaction_id,
             amount: e.amount,
             name: e.name,
+            role: e.role,
             msisdn: e.msisdn,
             id_number: e.id_number,
             id: e.id,
@@ -498,12 +437,6 @@ export class Drillers extends React.Component {
         })
     }
 
-
-    onSelectHandle = e => {
-        this.setState({
-            referred_id: e.value
-        })
-    }
     isOpen = e => {
         this.setState({
             isOpen: true,
@@ -568,7 +501,7 @@ export class Drillers extends React.Component {
                         closeTimeoutMS={500}
                     >
                         <MDBCloseIcon onClick={this.closeModal} />
-                        <h6><b>{"Add " + localStorage.getItem('unit_name')}</b></h6>
+                        <h6><b>{"Add New Customer"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -577,7 +510,7 @@ export class Drillers extends React.Component {
 
                                 <div className="form__form-group col-10 offset-1">
 
-                                    <span className="form__form-group-label">{localStorage.getItem('unit_name')}</span>
+                                    <span className="form__form-group-label">Onwer Name</span>
 
                                     <div className="form__form-group-field">
                                         <Form.Control
@@ -594,51 +527,9 @@ export class Drillers extends React.Component {
                                     <br />
 
 
-                                    <div className="col-md-10-offset-1">
-                                        <div className="form-group">
-                                            <div className="col-md-12">
-                                                <label className="form-label">Attach Owner</label>
-                                            </div>
-                                            <div className="col-md-12">
-
-                                                <Select
-                                                    isClearable
-                                                    options={
-                                                        (this.state.onwerData.length > 0 || this.state.onwerData.length === 0) &&
-                                                        this.state.onwerData.map((countyItem, i) => ({
-                                                            label: countyItem.name + " - " + countyItem.id_number,
-                                                            value: countyItem.id
-                                                        }))}
-
-                                                    placeholder="Select Onwer"
-                                                    autosize={true}
-                                                    onChange={this.onSelectHandle}
-                                                    className="selected"
-                                                    menuPortalTarget={document.body}
-                                                    name="namffe"
-                                                />
-                                            </div>
-
-                                        </div>
-                                    </div>
 
 
-                                    <span className="form__form-group-label">Pricing </span>
-                                    <div className="form__form-group-field">
-                                        <Form.Control
-                                            autoFocus
-                                            type="number"
-                                            name="amount"
-                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                                            placeholder="Enter Amount"
-                                            className="input-without-border-radius"
-                                            value={this.state.amount}
-                                            onChange={this.handleChange}
-                                        />
-                                    </div>
-                                    <br />
-
-                                    <span className="form__form-group-label">ID Number of Main Contact</span>
+                                    <span className="form__form-group-label">ID Number</span>
                                     <div className="form__form-group-field">
                                         <Form.Control
                                             autoFocus
@@ -654,7 +545,7 @@ export class Drillers extends React.Component {
                                     <br />
 
 
-                                    <span className="form__form-group-label">Phone Number of Main Contact</span>
+                                    <span className="form__form-group-label">Phone Number</span>
                                     <div className="form__form-group-field">
                                         <div className="form__form-group-icon">
                                             <PhoneOutlineIcon />
@@ -729,7 +620,6 @@ export class Drillers extends React.Component {
                                             style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
                                             placeholder="Enter Password"
                                             className="input-without-border-radius"
-                                            value={this.state.password}
                                             onChange={this.handleChange}
                                         />
                                     </div>
@@ -763,13 +653,13 @@ export class Drillers extends React.Component {
                         overlayClassName="myoverlay"
                         closeTimeoutMS={500}>
                         <MDBCloseIcon onClick={this.closeModalEdit} />
-                        <h6><b>{"Edit " + localStorage.getItem('unit_name')}</b></h6>
+                        <h6><b>{"Edit Customer Details"}</b></h6>
                         <br />
                         <br />
                         <>
                             <Form className="form login-form" onSubmit={this.onEditSubmit}>
                                 <div className="form__form-group col-10 offset-1">
-                                    <span className="form__form-group-label">{localStorage.getItem('unit_name')}</span>
+                                    <span className="form__form-group-label">Owner Name</span>
                                     <div className="form__form-group-field">
                                         <Form.Control
                                             autoFocus
@@ -783,36 +673,7 @@ export class Drillers extends React.Component {
                                         />
                                     </div>
                                     <br />
-
-                                    <div className="col-md-10-offset-1">
-                                        <div className="form-group">
-                                            <div className="col-md-12">
-                                                <label className="form-label">Attach Owner</label>
-                                            </div>
-                                            <div className="col-md-12">
-
-                                                <Select
-                                                    isClearable
-                                                    options={
-                                                        (this.state.onwerData.length > 0 || this.state.onwerData.length === 0) &&
-                                                        this.state.onwerData.map((countyItem, i) => ({
-                                                            label: countyItem.name + " - " + countyItem.id_number,
-                                                            value: countyItem.id
-                                                        }))}
-
-                                                    placeholder="Select Onwer"
-                                                    autosize={true}
-                                                    onChange={this.onSelectHandle}
-                                                    className="selected"
-                                                    menuPortalTarget={document.body}
-                                                    name="namffe"
-                                                />
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <span className="form__form-group-label">Pricing </span>
+                                    {/* <span className="form__form-group-label">Pricing </span>
                                     <div className="form__form-group-field">
                                         <Form.Control
                                             autoFocus
@@ -825,8 +686,8 @@ export class Drillers extends React.Component {
                                             onChange={this.handleChange}
                                         />
                                     </div>
-                                    <br />
-                                    <span className="form__form-group-label">ID Number of Main Contact</span>
+                                    <br /> */}
+                                    <span className="form__form-group-label">ID Number</span>
                                     <div className="form__form-group-field">
                                         <Form.Control
                                             autoFocus
@@ -840,7 +701,7 @@ export class Drillers extends React.Component {
                                         />
                                     </div>
                                     <br />
-                                    <span className="form__form-group-label">Phone Number of Main Contact</span>
+                                    <span className="form__form-group-label">Phone Number</span>
                                     <div className="form__form-group-field">
                                         <div className="form__form-group-icon">
                                             <PhoneOutlineIcon />
@@ -867,7 +728,6 @@ export class Drillers extends React.Component {
                                             style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
                                             placeholder="Enter Password"
                                             className="input-without-border-radius"
-                                            value={this.state.password}
                                             onChange={this.handleChange}
                                         />
                                     </div>
@@ -902,7 +762,7 @@ export class Drillers extends React.Component {
                         overlayClassName="myoverlay"
                         closeTimeoutMS={500}>
                         <MDBCloseIcon onClick={this.closeModalEditPhoto} />
-                        <h6><b>{localStorage.getItem('unit_name') + " Logo"}</b></h6>
+                        <h6><b>{"Customer Logo"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -942,16 +802,7 @@ export class Drillers extends React.Component {
                             < >
                                 <div className="row">
                                     <div className="col-md-8">
-                                        <h5>{localStorage.getItem('unit_name')}</h5>
-                                    </div>
-                                    <div className="col-md-4 float-right">
-                                        <button className="btn btn-primary" onClick={this.isOpen} > Add {localStorage.getItem('unit_name')}
-                                        </button>
-                                    </div>
-
-                                    <div className="col-md-4 float-right">
-                                        <button className="btn btn-primary" onClick={e => window.location.href = "services"} > Back
-                                        </button>
+                                        <h5>Drivers</h5>
                                     </div>
                                 </div>
                                 <br />
