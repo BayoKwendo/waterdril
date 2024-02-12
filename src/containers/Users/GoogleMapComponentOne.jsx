@@ -64,11 +64,7 @@ export const GoogleMapComponentOne = () => {
                         places={datamap}
                     />
                     :
-                    <Map
-                        center={{ lat: -1.286389, lng: 36.817223 }}
-                        zoom={8}
-                        places={datamap}
-                    />
+                    <h4>Current no active driver on moving</h4>
                 }
             </>
         </div >
