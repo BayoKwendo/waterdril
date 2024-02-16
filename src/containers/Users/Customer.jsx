@@ -741,10 +741,10 @@ export class Customers extends React.Component {
                             < >
                                 <div className="row">
                                     <div className="col-md-8">
-                                        <h5>Customers</h5>
+                                        <h5>Agents</h5>
                                     </div>
                                     <div className="col-md-4 float-right">
-                                        <button className="btn btn-primary" onClick={this.isOpen} > Add Customer
+                                        <button className="btn btn-primary" onClick={this.isOpen} > Add Agent
                                         </button>
                                     </div>
                                 </div>

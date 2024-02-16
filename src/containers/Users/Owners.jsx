@@ -741,7 +741,7 @@ export class Owners extends React.Component {
                             < >
                                 <div className="row">
                                     <div className="col-md-8">
-                                        <h5>Onwers</h5>
+                                        <h5>Owners</h5>
                                     </div>
                                     <div className="col-md-4 float-right">
                                         <button className="btn btn-primary" onClick={this.isOpen} > Add Onwer
