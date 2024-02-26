@@ -438,7 +438,7 @@ export class Owners extends React.Component {
                         closeTimeoutMS={500}
                     >
                         <MDBCloseIcon onClick={this.closeModal} />
-                        <h6><b>{"Add New Onwer"}</b></h6>
+                        <h6><b>{"Add New Owner"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -447,7 +447,7 @@ export class Owners extends React.Component {
 
                                 <div className="form__form-group col-10 offset-1">
 
-                                    <span className="form__form-group-label">Onwer Name</span>
+                                    <span className="form__form-group-label">Owner Name</span>
 
                                     <div className="form__form-group-field">
                                         <Form.Control
@@ -591,7 +591,7 @@ export class Owners extends React.Component {
                         overlayClassName="myoverlay"
                         closeTimeoutMS={500}>
                         <MDBCloseIcon onClick={this.closeModalEdit} />
-                        <h6><b>{"Edit Onwer Details"}</b></h6>
+                        <h6><b>{"Edit Owner Details"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -744,7 +744,7 @@ export class Owners extends React.Component {
                                         <h5>Owners</h5>
                                     </div>
                                     <div className="col-md-4 float-right">
-                                        <button className="btn btn-primary" onClick={this.isOpen} > Add Onwer
+                                        <button className="btn btn-primary" onClick={this.isOpen} > Add Owner
                                         </button>
                                     </div>
                                 </div>

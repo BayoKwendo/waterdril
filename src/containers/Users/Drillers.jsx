@@ -400,7 +400,7 @@ export class Drillers extends React.Component {
                     });
                 });
         } else {
-            errorToast("Please attach onwer")
+            errorToast("Please attach owner")
         }
     }
 
@@ -442,7 +442,7 @@ export class Drillers extends React.Component {
                     });
                 });
         } else {
-            errorToast("Please attach onwer")
+            errorToast("Please attach owner")
         }
     }
 
@@ -617,7 +617,7 @@ export class Drillers extends React.Component {
                                                             value: countyItem.id
                                                         }))}
 
-                                                    placeholder="Select Onwer"
+                                                    placeholder="Select Owner"
                                                     autosize={true}
                                                     onChange={this.onSelectHandle}
                                                     className="selected"
@@ -807,7 +807,7 @@ export class Drillers extends React.Component {
                                                             value: countyItem.id
                                                         }))}
 
-                                                    placeholder="Select Onwer"
+                                                    placeholder="Select Owner"
                                                     autosize={true}
                                                     onChange={this.onSelectHandle}
                                                     className="selected"
