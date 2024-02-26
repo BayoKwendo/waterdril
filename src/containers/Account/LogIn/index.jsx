@@ -105,6 +105,14 @@ const LogIn = () => {
             }, 10);
           }
 
+          if (response.data.user.role == 'assistance') {
+            window.setTimeout(() => {
+              window.location.href = "dashboard"
+              isLoading(false)
+              // }
+            }, 10);
+          }
+
           if (response.data.user.role == 'onwer') {
             window.setTimeout(() => {
               window.location.href = "driver"

@@ -53,6 +53,13 @@ export class UserProfile extends React.Component {
                 align: "left"
             },
 
+            {
+                key: "role",
+                TrOnlyClassName: 'tsc',
+                text: "Role",
+                className: "tsc",
+                align: "left"
+            },
 
             // deno-lint-ignore no-dupe-keys
             {
@@ -60,7 +67,6 @@ export class UserProfile extends React.Component {
                 TrOnlyClassName: 'tsc',
                 text: "Status",
                 TrOnlyClassName: 'cell',
-
                 className: "cell",
                 align: "left",
                 cell: record => {
@@ -104,9 +110,7 @@ export class UserProfile extends React.Component {
                                     { marginRight: '10px' }}
                                 onClick={() => { this.isOpenEdit(record) }}
 
-                            >
-
-                                Edit
+                            >  Edit
                             </button>
 
                             <button className="btn btn-danger btn-sm"
@@ -118,16 +122,6 @@ export class UserProfile extends React.Component {
 
                                 Deactivate
                             </button>
-                            {/* 
-                            <button className="btn btn-danger btn-sm"
-                                style={
-                                    { marginRight: '10px' }}
-                                onClick={() => { this.isOpenEditPhoto(record) }}
-
-                            >
-
-                                Deactivate
-                            </button> */}
                         </Fragment>
                     );
                 }
@@ -203,7 +197,7 @@ export class UserProfile extends React.Component {
 
     getData = (queryString = "") => {
 
-        let url = baseURL + `users?role=admin&${queryString}`;
+        let url = baseURL + `users?role=assistance&${queryString}`;
         this.setState({
             isLoading: true,
         })
@@ -211,9 +205,9 @@ export class UserProfile extends React.Component {
             axios.get(url, CONFIG)
         ]).then(axios.spread((branchResponse) => {
             this.setState({
-                admins: branchResponse.data.data.filter(el =>  el.msisdn !== MSISDN
-                                        
-                    ),
+                admins: branchResponse.data.data.filter(el => el.msisdn !== MSISDN
+
+                ),
                 isLoading: false,
             });
         }))
@@ -271,7 +265,7 @@ export class UserProfile extends React.Component {
             "location": "",
             "lat": this.state.latitude,
             "long": this.state.longitude,
-            "role": "admin",
+            "role": "assistance",
             "amount": 0,
             "password": this.state.password
         }
@@ -308,7 +302,7 @@ export class UserProfile extends React.Component {
             "location": this.state.address,
             "lat": this.state.latitude,
             "long": this.state.longitude,
-            "role": "test_pump",
+            "role": "assistance",
             "id": this.state.id,
             "amount": this.state.amount,
             "password": this.state.password
@@ -465,7 +459,7 @@ export class UserProfile extends React.Component {
 
                                 <div className="form__form-group col-10 offset-1">
 
-                                    <span className="form__form-group-label">User Profile</span>
+                                    <span className="form__form-group-label">User Profiles</span>
 
                                     <div className="form__form-group-field">
                                         <Form.Control
@@ -628,7 +622,7 @@ export class UserProfile extends React.Component {
 
                                 <div className="account__btns col-8 offset-2">
                                     <Button className="account__btn" type='submit' color="success"> {
-                                        this.state.isLoading ? "Please wait..." : "Add"
+                                        this.state.isLoading ? "Please wait..." : "Update"
                                     }</Button>
                                 </div>
 
@@ -694,10 +688,10 @@ export class UserProfile extends React.Component {
                             < >
                                 <div className="row">
                                     <div className="col-md-8">
-                                        <h5>User Profile</h5>
+                                        <h5>User Profiles</h5>
                                     </div>
                                     <div className="col-md-4 float-right">
-                                        <button className="btn btn-primary" onClick={this.isOpen} > Add User
+                                        <button className="btn btn-primary" onClick={this.isOpen} > Add  New User
                                         </button>
                                     </div>
                                 </div>

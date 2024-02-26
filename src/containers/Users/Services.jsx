@@ -389,7 +389,7 @@ export class Services extends React.Component {
                     {ToastTable()}
 
                     {this.state.goOpen ?
-                        window.location.href = "test_units"
+                        window.location.href = "services_units"
                         :
                         < Card >
                             <CardBody >

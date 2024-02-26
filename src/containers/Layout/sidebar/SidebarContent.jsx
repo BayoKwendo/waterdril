@@ -26,8 +26,25 @@ const SidebarContent = ({
 
           <SidebarLink title="Service Requests" route="/request_water" icon="users" onClick={hideSidebar} />
 
+
           <SidebarLink title="Transactions" route="/deposit" icon="briefcase" onClick={hideSidebar} />
           <SidebarLink title="User Profile" route="/user_profile" icon="users" onClick={hideSidebar} />
+
+        </>
+        : null}
+
+
+      {ROLE == 'assistance' ?
+        <>
+          <SidebarLink title="Dashboard" route="/dashboard" icon="home" onClick={hideSidebar} />
+          <SidebarLink title="Track" route="/googlemap" icon="map" onClick={hideSidebar} />
+          <SidebarLink title="Owners" route="/owner" icon="users" onClick={hideSidebar} />
+          <SidebarLink title="Agents" route="/customer" icon="users" onClick={hideSidebar} />
+
+          
+          <SidebarLink title="Services" route="/services" icon="briefcase" onClick={hideSidebar} />
+
+          <SidebarLink title="Service Requests" route="/request_water" icon="users" onClick={hideSidebar} />
 
         </>
         : null}
@@ -35,7 +52,10 @@ const SidebarContent = ({
       {ROLE == 'onwer' ?
         <>
           <SidebarLink title="Your Drivers" route="/driver" icon="users" onClick={hideSidebar} />
+          <SidebarLink title="Services" route="/services_driver" icon="briefcase" onClick={hideSidebar} />
+
           <SidebarLink title="Track" route="/googlemap_one" icon="map" onClick={hideSidebar} />
+
         </>
         : null}
 

@@ -438,7 +438,7 @@ export class Owners extends React.Component {
                         closeTimeoutMS={500}
                     >
                         <MDBCloseIcon onClick={this.closeModal} />
-                        <h6><b>{"Add New Customer"}</b></h6>
+                        <h6><b>{"Add New Onwer"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -591,7 +591,7 @@ export class Owners extends React.Component {
                         overlayClassName="myoverlay"
                         closeTimeoutMS={500}>
                         <MDBCloseIcon onClick={this.closeModalEdit} />
-                        <h6><b>{"Edit Customer Details"}</b></h6>
+                        <h6><b>{"Edit Onwer Details"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -675,7 +675,7 @@ export class Owners extends React.Component {
 
                                 <div className="account__btns col-8 offset-2">
                                     <Button className="account__btn" type='submit' color="success"> {
-                                        this.state.isLoading ? "Please wait..." : "Add"
+                                        this.state.isLoading ? "Please wait..." : "Update"
                                     }</Button>
                                 </div>
 

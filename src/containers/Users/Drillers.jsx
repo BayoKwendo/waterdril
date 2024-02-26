@@ -38,6 +38,13 @@ export class Drillers extends React.Component {
             },
 
             {
+                key: "name_internal",
+                TrOnlyClassName: 'tsc',
+                text: "Internal Name",
+                className: "tsc",
+                align: "left"
+            },
+            {
                 key: "msisdn",
                 TrOnlyClassName: 'tsc',
                 text: "Contacts",
@@ -116,7 +123,7 @@ export class Drillers extends React.Component {
             {
                 key: "driver_name",
                 TrOnlyClassName: 'tsc',
-                text: "DriverName",
+                text: "Owners Name",
                 className: "tsc",
                 align: "left"
             },
@@ -124,7 +131,7 @@ export class Drillers extends React.Component {
             {
                 key: "driver_msisdn",
                 TrOnlyClassName: 'tsc',
-                text: "Driver Contacts",
+                text: "Owners Contacts",
                 className: "tsc",
                 align: "left"
             },
@@ -132,7 +139,7 @@ export class Drillers extends React.Component {
             {
                 key: "driver_id_number",
                 TrOnlyClassName: 'tsc',
-                text: "Driver ID Number",
+                text: "Owners ID Number",
                 className: "tsc",
                 align: "left"
             },
@@ -876,7 +883,7 @@ export class Drillers extends React.Component {
 
                                 <div className="account__btns col-8 offset-2">
                                     <Button className="account__btn" type='submit' color="success"> {
-                                        this.state.isLoading ? "Please wait..." : "Add"
+                                        this.state.isLoading ? "Please wait..." : "Update"
                                     }</Button>
                                 </div>
 

@@ -438,7 +438,7 @@ export class Customers extends React.Component {
                         closeTimeoutMS={500}
                     >
                         <MDBCloseIcon onClick={this.closeModal} />
-                        <h6><b>{"Add New Customer"}</b></h6>
+                        <h6><b>{"Add New Agent"}</b></h6>
                         <br />
                         <br />
                         <>
@@ -447,7 +447,7 @@ export class Customers extends React.Component {
 
                                 <div className="form__form-group col-10 offset-1">
 
-                                    <span className="form__form-group-label">Customer Name</span>
+                                    <span className="form__form-group-label">Agent Name</span>
 
                                     <div className="form__form-group-field">
                                         <Form.Control
@@ -591,13 +591,13 @@ export class Customers extends React.Component {
                         overlayClassName="myoverlay"
                         closeTimeoutMS={500}>
                         <MDBCloseIcon onClick={this.closeModalEdit} />
-                        <h6><b>{"Edit Customer Details"}</b></h6>
+                        <h6><b>{"Edit Agent Details"}</b></h6>
                         <br />
                         <br />
                         <>
                             <Form className="form login-form" onSubmit={this.onEditSubmit}>
                                 <div className="form__form-group col-10 offset-1">
-                                    <span className="form__form-group-label">Customer Name</span>
+                                    <span className="form__form-group-label">Agent Name</span>
                                     <div className="form__form-group-field">
                                         <Form.Control
                                             autoFocus
@@ -675,7 +675,7 @@ export class Customers extends React.Component {
 
                                 <div className="account__btns col-8 offset-2">
                                     <Button className="account__btn" type='submit' color="success"> {
-                                        this.state.isLoading ? "Please wait..." : "Add"
+                                        this.state.isLoading ? "Please wait..." : "Update"
                                     }</Button>
                                 </div>
 

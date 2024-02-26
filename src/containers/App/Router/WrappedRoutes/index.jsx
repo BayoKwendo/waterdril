@@ -14,6 +14,7 @@ import { Owners } from '../../../Users/Owners';
 import { Drivers } from '../../../Users/Drivers';
 import { GoogleMapComponentOne } from '../../../Users/GoogleMapComponentOne';
 import { DepositMade } from '../../../Users/Deposits';
+import { RequestDriver } from '../../../Users/RequestDriver';
 
 
 export default () => (
@@ -40,7 +41,9 @@ export default () => (
 
       <Route path="/request_water" component={RequestWater} />
 
-      <Route path="/test_units" component={Drillers} />
+      <Route path="/services_units" component={Drillers} />
+
+      <Route path="/services_driver" component={RequestDriver} />
 
       <Route path="/geologist" component={Geologists} />
 
