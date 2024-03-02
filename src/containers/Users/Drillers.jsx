@@ -36,7 +36,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             {
                 key: "name_internal",
                 TrOnlyClassName: 'tsc',
@@ -51,7 +50,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             {
                 key: "id_number",
                 TrOnlyClassName: 'tsc',
@@ -59,7 +57,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             {
                 key: "location",
                 TrOnlyClassName: 'tsc',
@@ -67,7 +64,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             {
                 key: "lat",
                 TrOnlyClassName: 'tsc',
@@ -75,7 +71,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             {
                 key: "longitude",
                 TrOnlyClassName: 'tsc',
@@ -90,7 +85,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             // deno-lint-ignore no-dupe-keys
             {
                 key: "status",
@@ -119,7 +113,6 @@ export class Drillers extends React.Component {
                     );
                 }
             },
-
             {
                 key: "driver_name",
                 TrOnlyClassName: 'tsc',
@@ -127,7 +120,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             {
                 key: "driver_msisdn",
                 TrOnlyClassName: 'tsc',
@@ -135,7 +127,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             {
                 key: "driver_id_number",
                 TrOnlyClassName: 'tsc',
@@ -143,7 +134,6 @@ export class Drillers extends React.Component {
                 className: "tsc",
                 align: "left"
             },
-
             {
                 key: "created_on",
                 TrOnlyClassName: 'tsc',
@@ -369,6 +359,7 @@ export class Drillers extends React.Component {
         if (Number(this.state.referred_id) > 0) {
             let formData = {
                 "name": this.state.name,
+                "internal_name": this.state.internal_name,
                 "id_number": this.state.id_number,
                 "msisdn": this.state.msisdn.toString().replaceAll("+", ""),
                 "location": this.state.address,
@@ -411,6 +402,7 @@ export class Drillers extends React.Component {
         let formData = {
             "name": this.state.name,
             "id_number": this.state.id_number,
+            "internal_name": this.state.internal_name,
             "msisdn": this.state.msisdn.toString().replaceAll("+", ""),
             "location": this.state.address,
             "lat": this.state.latitude,
@@ -487,6 +479,7 @@ export class Drillers extends React.Component {
             isOpenEdit: true,
             IsEdit: true,
             referred_id: 0,
+            internal_name:e.name_internal,
             record_id: e.transaction_id,
             amount: e.amount,
             name: e.name,
@@ -600,7 +593,20 @@ export class Drillers extends React.Component {
                                     </div>
                                     <br />
 
-
+                                    <span className="form__form-group-label">Internal Name</span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="text"
+                                            name="internal_name"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Internal Name"
+                                            className="input-without-border-radius"
+                                            value={this.state.internal_name}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
                                     <div className="col-md-10-offset-1">
                                         <div className="form-group">
                                             <div className="col-md-12">
@@ -786,6 +792,21 @@ export class Drillers extends React.Component {
                                             placeholder="Name"
                                             className="input-without-border-radius"
                                             value={this.state.name}
+                                            onChange={this.handleChange}
+                                        />
+                                    </div>
+                                    <br />
+
+                                    <span className="form__form-group-label">Internal Name</span>
+                                    <div className="form__form-group-field">
+                                        <Form.Control
+                                            autoFocus
+                                            type="text"
+                                            name="internal_name"
+                                            style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                                            placeholder="Internal Name"
+                                            className="input-without-border-radius"
+                                            value={this.state.internal_name}
                                             onChange={this.handleChange}
                                         />
                                     </div>

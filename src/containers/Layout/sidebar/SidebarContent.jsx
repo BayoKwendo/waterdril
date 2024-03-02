@@ -41,7 +41,7 @@ const SidebarContent = ({
           <SidebarLink title="Owners" route="/owner" icon="users" onClick={hideSidebar} />
           <SidebarLink title="Agents" route="/customer" icon="users" onClick={hideSidebar} />
 
-          
+
           <SidebarLink title="Services" route="/services" icon="briefcase" onClick={hideSidebar} />
 
           <SidebarLink title="Service Requests" route="/request_water" icon="users" onClick={hideSidebar} />
@@ -53,9 +53,7 @@ const SidebarContent = ({
         <>
           <SidebarLink title="Your Drivers" route="/driver" icon="users" onClick={hideSidebar} />
           <SidebarLink title="Services" route="/services_driver" icon="briefcase" onClick={hideSidebar} />
-
           <SidebarLink title="Track" route="/googlemap_one" icon="map" onClick={hideSidebar} />
-
         </>
         : null}
 
