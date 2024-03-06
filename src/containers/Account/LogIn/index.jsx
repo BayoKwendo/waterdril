@@ -165,7 +165,7 @@ const LogIn = () => {
 
     // alert(formData)
 
-    axios.post(baseURL + 'reset_pin', formData, {
+    axios.post(baseURL + 'password_reset', formData, {
       headers: {
         'Content-Type': 'application/json'
       }
