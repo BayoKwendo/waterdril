@@ -159,276 +159,207 @@ const LogIn = () => {
     isLoading(true);
 
 
-    if (password_again == password) {
-
-      let formData = {
-        "username": username,
-        "full_name": full_name,
-        "email": email,
-        "password": password
-      }
-
-      // alert(formData)
-
-      axios.post(baseURL + 'auth/users', formData, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-        .then((response) => {
-
-          // console.log("testtesttsttesttest ",  )
-          if (response.status == 200) {
-            setStatusMessage("Success!")
-            setError(false)
-            setSuccess(true)
-            setErrorMessage('')
-            // eslint-disable-next-line
-            window.setTimeout(() => {
-              // alert(response.data.user.role)
-              isOpenPassword(false);
-              setSuccess(false)
-              isLoading(false)
-
-            }, 3000);
-          }
-          else {
-            setStatusMessage("")
-            setError(true)
-            errorToast("Error")
-            setSuccess(false)
-            window.setTimeout(() => {
-              // alert(response.data.user.role)
-              isLoading(false)
-              setError(false)
-            }, 5000);
-          }
-        }).catch(error => {
-          setError(true)
-          if (error.response.data.error) {
-            errorToast(error.response.data.error)
-          } else {
-
-            errorToast(error.response.data)
-          }
-          isLoading(false)
-          setSuccess(false)
-        });
-    } else {
-      isLoading(false);
-
-      errorToast("Password Don't Match")
-
+    let formData = {
+      "username": username,
     }
-  }
+
+    // alert(formData)
+
+    axios.post(baseURL + 'reset_pin', formData, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then((response) => {
+
+        // console.log("testtesttsttesttest ",  )
+        if (response.status == 200) {
+          setStatusMessage("Success!")
+          setError(false)
+          setSuccess(true)
+          setErrorMessage('')
+          // eslint-disable-next-line
+          window.setTimeout(() => {
+            // alert(response.data.user.role)
+            isOpenPassword(false);
+            setSuccess(false)
+            isLoading(false)
+
+          }, 3000);
+        }
+        else {
+          setStatusMessage("")
+          setError(true)
+          errorToast("Error phone not found")
+          setSuccess(false)
+          window.setTimeout(() => {
+            // alert(response.data.user.role)
+            isLoading(false)
+            setError(false)
+          }, 5000);
+        }
+      }).catch(error => {
+        setError(true)
+        if (error.response.data.error) {
+          errorToast(error.response.data.error)
+        } else {
+
+          errorToast(error.response.data)
+        }
+        isLoading(false)
+        setSuccess(false)
+      });
+  
+
+}
 
 
-  // return the UI
-  return (
-    <div className="elite-login">
+// return the UI
+return (
+  <div className="elite-login">
 
-      <ToastTable />
+    <ToastTable />
 
-      <Modal
-        isOpen={openPassword}
-        onRequestClose={e => {
-          closeModalReset(e);
-        }}
-        contentLabel="My dialog"
-        className="mymodal"
-        onAfterOpen={() => {
-          document.body.style.overflow = 'hidden';
-        }}
-        onAfterClose={() => {
-          document.body.removeAttribute('style');
-        }}
-        overlayClassName="myoverlay"
-        closeTimeoutMS={500}
-      >
-        <MDBCloseIcon onClick={closeModalReset} />
-        <h4><b>Create User</b></h4>
-        <>
-          <Form className="form login-form col-8 offset-2" onSubmit={onSubmitPasswordReset}>
-            {/*n  <h5><b>Get Agent Number</b></h5> */}
-            <div className="form__form-group">
-              <br></br>
-              {success ? (
-                <Alert color="success" className="alert--colored" >
-                  <span>
-                    {statusMessage}
-                  </span>
-                </Alert>
-              ) : null}
-              {error && (
-                <div>
-                  <div
-                    color="red"
-                    style={{ fontSize: "13px", color: "red" }}>
-                    {errorMessage}
-                  </div>
-                </div>
-              )}
-              <span className="form__form-group-label">Username</span>
-              <div className="form__form-group-field">
-                <Form.Control
-                  autoFocus
-                  type="text"
-                  name="username"
-                  style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                  placeholder="Enter your Username"
-                  className="input-without-border-radius"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                />
-              </div>
-              <br />
-
-              <span className="form__form-group-label">Full Name</span>
-              <div className="form__form-group-field">
-                <Form.Control
-                  autoFocus
-                  type="text"
-                  name="full_name"
-                  style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                  placeholder="Enter your Name"
-                  className="input-without-border-radius"
-                  value={full_name}
-                  onChange={e => setName(e.target.value)}
-                />
-              </div>
-              <br />
-
-
-              <span className="form__form-group-label">Email</span>
-              <div className="form__form-group-field">
-                <Form.Control
-                  autoFocus
-                  type="email"
-                  name="email"
-                  style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                  placeholder="Enter your Email"
-                  className="input-without-border-radius"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-              </div>
-              <br />
-
-
-              <span className="form__form-group-label">Password</span>
-              <div className="form__form-group-field">
-                <Form.Control
-                  autoFocus
-                  type="password"
-                  name="password"
-                  style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                  placeholder="Enter your Password"
-                  className="input-without-border-radius"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
-              </div>
-              <br />
-
-              <span className="form__form-group-label">Password Again</span>
-              <div className="form__form-group-field">
-                <Form.Control
-                  autoFocus
-                  type="password"
-                  name="password_again"
-                  style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
-                  placeholder="Enter your Password Again"
-                  className="input-without-border-radius"
-                  value={password_again}
-                  onChange={e => setPasswordAgain(e.target.value)}
-                />
-              </div>
-              <br />
-            </div>
-            <div className="account__btns col-8 offset-2">
-              <Button className="account__btn" type='submit' color="success"> {
-                loading ? "Please wait..." : "Create"
-              }</Button>
-            </div>
-
-          </Form>
-        </>
-      </Modal>
-
-
-
-
-      <div className="elite-login-sec">
-        <div className="row">
-          <div className="col-md-6 elite-login-left">
-            <div className="carousel-wrap center">
-              <div className="item">
-                <div className="item-sec center">
-                  <div className="login_slider_image center">
-                    <img className='center' src={img} alt="logo" />
-                  </div>
+    <Modal
+      isOpen={openPassword}
+      onRequestClose={e => {
+        closeModalReset(e);
+      }}
+      contentLabel="My dialog"
+      className="mymodal"
+      onAfterOpen={() => {
+        document.body.style.overflow = 'hidden';
+      }}
+      onAfterClose={() => {
+        document.body.removeAttribute('style');
+      }}
+      overlayClassName="myoverlay"
+      closeTimeoutMS={500}
+    >
+      <MDBCloseIcon onClick={closeModalReset} />
+      <h4><b>Forgot password</b></h4>
+      <>
+        <Form className="form login-form col-8 offset-2" onSubmit={onSubmitPasswordReset}>
+          {/*n  <h5><b>Get Agent Number</b></h5> */}
+          <div className="form__form-group">
+            <br></br>
+            {success ? (
+              <Alert color="success" className="alert--colored" >
+                <span>
+                  {statusMessage}
+                </span>
+              </Alert>
+            ) : null}
+            {error && (
+              <div>
+                <div
+                  color="red"
+                  style={{ fontSize: "13px", color: "red" }}>
+                  {errorMessage}
                 </div>
               </div>
+            )}
+            <span className="form__form-group-label">Your username (2547***)</span>
+            <div className="form__form-group-field">
+              <Form.Control
+                autoFocus
+                type="Number"
+                name="username"
+                style={{ color: "black", borderColor: "hsl(0,0%,80%)" }}
+                placeholder="Enter your Username"
+                className="input-without-border-radius"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+              />
             </div>
+            <br />
+
+            <br />
           </div>
-          <div className="col-md-6 elite-login-right">
-            <h1 className="elite-login-head">SMART DRILLING</h1>
-            <form className="elite-login-form" onSubmit={onSubmit} >
+          <div className="account__btns col-8 offset-2">
+            <Button className="account__btn" type='submit' color="success"> {
+              loading ? "Please wait..." : "Submit"
+            }</Button>
+          </div>
 
-              <div className="elite-form-field">
-                <label htmlFor="user_email">Your username (2547***)</label>
-                <input className="form-control"
-                  placeholder="Enter Username (2547)"
-                  id="elite-username"
-                  required="required"
-                  type="text"
-                  onChange={handleChangeUsername}
-                  style={{ borderColor: "grey" }}
-                  value={username}
-                  name="username" />
+        </Form>
+      </>
+    </Modal>
+
+
+
+
+    <div className="elite-login-sec">
+      <div className="row">
+        <div className="col-md-6 elite-login-left">
+          <div className="carousel-wrap center">
+            <div className="item">
+              <div className="item-sec center">
+                <div className="login_slider_image center">
+                  <img className='center' src={img} alt="logo" />
+                </div>
               </div>
-              <div className="elite-form-field">
-                <label htmlFor="user_email">Password</label>
-                <input
-                  placeholder="Enter your password"
-                  id="elite-email"
-                  className="form-control"
-                  required="required"
-                  style={{ borderColor: "grey" }}
-                  value={password}
-                  onChange={handleChangePassword}
-                  type={showPassword === true ? "text" : "password"}
-                />
-                <input type="hidden" name="user_timezone" id="user_timezone" />
-                <span toggle="#password-field" onClick={showPasswordToggle} className="fa fa-fw fa-eye field-icon toggle-password" />
-
-                {// eslint-disable-next-line
-                }
-                <p className="elite-agent-pwd" ><a href="#" onClick={resetpasswordchange}
-                  data-toggle="modal" data-target="#specialist-forgotModal">
-                  Register ?
-
-                </a></p>
-                <br /><br />
-
-                <br /><br />
-                <br /><br />
-
-              </div>
-
-
-              <button type="submit" className="elite-form-btn"> {
-                loading ? "Please wait..." : "Sign In"}
-              </button>
-              <br />
-              <br />
-              <p><b>Smart Drilling: </b><br />Enhances customer value-Created trust in a broken system<br />Automates orders management through algorithm-All vetted vendors</p>
-            </form>
+            </div>
           </div>
         </div>
-      </div >
+        <div className="col-md-6 elite-login-right">
+          <h1 className="elite-login-head">SMART DRILLING</h1>
+          <form className="elite-login-form" onSubmit={onSubmit} >
+
+            <div className="elite-form-field">
+              <label htmlFor="user_email">Your username (2547***)</label>
+              <input className="form-control"
+                placeholder="Enter Username (2547)"
+                id="elite-username"
+                required="required"
+                type="text"
+                onChange={handleChangeUsername}
+                style={{ borderColor: "grey" }}
+                value={username}
+                name="username" />
+            </div>
+            <div className="elite-form-field">
+              <label htmlFor="user_email">Password</label>
+              <input
+                placeholder="Enter your password"
+                id="elite-email"
+                className="form-control"
+                required="required"
+                style={{ borderColor: "grey" }}
+                value={password}
+                onChange={handleChangePassword}
+                type={showPassword === true ? "text" : "password"}
+              />
+              <input type="hidden" name="user_timezone" id="user_timezone" />
+              <span toggle="#password-field" onClick={showPasswordToggle} className="fa fa-fw fa-eye field-icon toggle-password" />
+
+              {// eslint-disable-next-line
+              }
+              <p className="elite-agent-pwd" ><a href="#" onClick={resetpasswordchange}
+                data-toggle="modal" data-target="#specialist-forgotModal">
+                Forgot Password ?
+
+              </a></p>
+              <br /><br />
+
+              <br /><br />
+              <br /><br />
+
+            </div>
+
+
+            <button type="submit" className="elite-form-btn"> {
+              loading ? "Please wait..." : "Sign In"}
+            </button>
+            <br />
+            <br />
+            <p><b>Smart Drilling: </b><br />Enhances customer value-Created trust in a broken system<br />Automates orders management through algorithm-All vetted vendors</p>
+          </form>
+        </div>
+      </div>
     </div >
-  );
+  </div >
+);
 }
 
 export default connect(state => ({ theme: state.theme }))(LogIn);
