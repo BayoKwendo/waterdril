@@ -380,6 +380,7 @@ export class Drivers extends React.Component {
             "role": this.state.role,
             "id": this.state.id,
             "onwer_id": USER_ID,
+            "customer_type": "agent",
             "amount": this.state.amount,
             "password": this.state.password
         }

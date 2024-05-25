@@ -267,6 +267,7 @@ export class UserProfile extends React.Component {
             "long": this.state.longitude,
             "role": "assistance",
             "amount": 0,
+            "customer_type": "agent",
             "password": this.state.password
         }
 
@@ -303,6 +304,7 @@ export class UserProfile extends React.Component {
             "lat": this.state.latitude,
             "long": this.state.longitude,
             "role": "assistance",
+            "customer_type": "agent",
             "id": this.state.id,
             "amount": this.state.amount,
             "password": this.state.password

@@ -225,6 +225,7 @@ export class Geologists extends React.Component {
             "lat": this.state.latitude,
             "long": this.state.longitude,
             "amount": this.state.amount,
+            "customer_type": "agent",
             "password": this.state.password,
             "role": "geologist",
         }

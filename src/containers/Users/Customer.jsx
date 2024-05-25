@@ -228,6 +228,7 @@ export class Customers extends React.Component {
             "lat": this.state.latitude,
             "long": this.state.longitude,
             "role": "customer",
+            "customer_type": "agent",
             "amount": this.state.amount,
             "password": this.state.password
         }
@@ -291,6 +292,7 @@ export class Customers extends React.Component {
             "lat": this.state.latitude,
             "long": this.state.longitude,
             "role": "customer",
+            "customer_type": "agent",
             "id": this.state.id,
             "amount": this.state.amount,
             "password": this.state.password

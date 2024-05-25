@@ -368,6 +368,7 @@ export class Drillers extends React.Component {
                 "long": this.state.longitude,
                 "role": localStorage.getItem('unit_type'),
                 "amount": this.state.amount,
+                "customer_type": "agent",
                 "password": this.state.password
             }
 
@@ -410,6 +411,7 @@ export class Drillers extends React.Component {
             "onwer_id": this.state.referred_id,
             "role": localStorage.getItem('unit_type'),
             "id": this.state.id,
+            "customer_type": "agent",
             "amount": this.state.amount,
             "password": this.state.password
         }
