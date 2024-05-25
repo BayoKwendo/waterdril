@@ -15,6 +15,7 @@ import { Drivers } from '../../../Users/Drivers';
 import { GoogleMapComponentOne } from '../../../Users/GoogleMapComponentOne';
 import { DepositMade } from '../../../Users/Deposits';
 import { RequestDriver } from '../../../Users/RequestDriver';
+import { Agents } from '../../../Users/Agents';
 
 
 export default () => (
@@ -35,6 +36,7 @@ export default () => (
       <Route path="/user_profile" component={UserProfile} />
 
       <Route path="/customer" component={Customers} />
+      <Route path="/agent" component={Agents} />
 
 
       <Route path="/services" component={Services} />

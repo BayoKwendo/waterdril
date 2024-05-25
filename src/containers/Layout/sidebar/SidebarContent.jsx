@@ -20,7 +20,8 @@ const SidebarContent = ({
           <SidebarLink title="Track" route="/googlemap" icon="map" onClick={hideSidebar} />
           <SidebarLink title="Owners" route="/owner" icon="users" onClick={hideSidebar} />
 
-          <SidebarLink title="Agents" route="/customer" icon="users" onClick={hideSidebar} />
+          <SidebarLink title="Agents" route="/agent" icon="users" onClick={hideSidebar} />
+          <SidebarLink title="Custoemrs" route="/customer" icon="users" onClick={hideSidebar} />
 
           <SidebarLink title="Services" route="/services" icon="briefcase" onClick={hideSidebar} />
 
