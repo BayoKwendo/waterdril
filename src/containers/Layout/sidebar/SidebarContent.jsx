@@ -21,7 +21,7 @@ const SidebarContent = ({
           <SidebarLink title="Owners" route="/owner" icon="users" onClick={hideSidebar} />
 
           <SidebarLink title="Agents" route="/agent" icon="users" onClick={hideSidebar} />
-          <SidebarLink title="Custoemrs" route="/customer" icon="users" onClick={hideSidebar} />
+          <SidebarLink title="Customers" route="/customer" icon="users" onClick={hideSidebar} />
 
           <SidebarLink title="Services" route="/services" icon="briefcase" onClick={hideSidebar} />
 
